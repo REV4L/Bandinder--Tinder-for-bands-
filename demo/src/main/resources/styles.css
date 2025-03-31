@@ -1,0 +1,255 @@
+.root {
+    -fx-background-color: SYSTEM_COLOR;
+    -fx-font-family: SYSTEM_FONT;
+    -fx-font-size: 17;
+    -fx-effect: innershadow(gaussian, #000000, 3, 1, 0, 0);
+}
+
+/* .root {
+    -fx-background-color: #3f3f3f;
+    -fx-font-family: "Trebuchet MS";
+    -fx-font-size: 17;
+
+} */
+
+.userlabel {
+    -fx-font-size: 24;
+    /* -fx-font-style: bold; */
+    -fx-font-weight: 200;
+}
+
+.group {
+    -fx-padding: 10px;
+    -fx-spacing: 1px;
+    -fx-background-color: #454545;
+    -fx-background-radius: 5px;
+}
+
+.scroll-pane {
+    -fx-background-color: SYSTEM_COLOR;
+    /* -fx-background-color: #3f3f3f; */
+    /* -fx-font-family: "Trebuchet MS"; */
+    -fx-font-size: 17;
+}
+
+.label {
+    -fx-text-fill: white;
+}
+
+.button {
+    -fx-background-color: #3f3f3f;
+    -fx-text-fill: white;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 5px;
+    /* -fx-cursor: crosshair; */
+    /* -fx-border-radius: 5;
+    -fx-border-color: #00000000; */
+    /* -fx-effect: brightness(2); */
+}
+
+.button:hover {
+    /* -fx-background-color: #666666; */
+    /* -fx-border-color: #ffffff; */
+    /* -fx-effect: brightness(1.2); */
+    -fx-effect: innershadow(gaussian, #ffffff34, 3000, 0.5, 0, 0);
+}
+
+/* Style for a VBox container */
+.container {
+    -fx-padding: 20px;
+    -fx-spacing: 10px;
+    -fx-alignment: center;
+    -fx-background-color: #303030;
+    -fx-background-radius: 5px;
+}
+
+.date-picker .text-field {
+    -fx-background-color: #333;
+    -fx-text-fill: white;
+}
+
+.date-picker .arrow {
+    -fx-background-color: #666;
+}
+
+.date-picker .calendar {
+    -fx-background-color: #444;
+}
+
+
+
+
+.page {
+    -fx-background-color: SYSTEM_COLOR;
+    /* -fx-background-color: rgb(43, 43, 43); */
+    /* -fx-text-fill: #FFFFFF; */
+    -fx-padding: 20px;
+}
+
+/* Style the DatePicker */
+.date-picker {
+    -fx-background-color: #333333;
+    /* Dark background */
+    -fx-text-fill: rgb(0, 0, 0);
+    -fx-font-size: 14px;
+}
+
+/* Style the popup */
+.date-picker-popup>.popup-content {
+    /* -fx-background-color: #222222; */
+    /* Darker background for the popup */
+    -fx-border-color: #444444;
+
+
+
+    -fx-background-color: derive(-fx-box-border, 30%),
+        linear-gradient(to bottom, derive(#444444, -3%),
+            derive(#444444, 5%) 50%,
+            derive(#444444, -3%));
+    /* Subtle border */
+}
+
+/* Month and year label */
+.date-picker-popup>.popup-content>.month-year-pane>.label {
+    -fx-text-fill: rgb(0, 0, 0);
+}
+
+/* Weekday header labels (Sun, Mon, etc.) */
+.date-picker-popup>.popup-content>.calendar-pane>.calendar-header>.label {
+    -fx-text-fill: #000000;
+}
+
+/* Default day cells */
+.date-picker-popup>.popup-content>.calendar-pane>.day-cell {
+    -fx-background-color: #222222;
+    /* Dark background for calendar */
+    -fx-text-fill: rgb(0, 0, 0);
+}
+
+/* Today’s date styling */
+.date-picker-popup>.popup-content>.calendar-pane>.day-cell:today {
+    -fx-background-color: #444444;
+    -fx-text-fill: #ffcc00;
+    /* Highlight today's date */
+}
+
+/* Selected date */
+.date-picker-popup>.popup-content>.calendar-pane>.day-cell:selected {
+    -fx-background-color: #555555;
+    -fx-text-fill: rgb(0, 0, 0);
+}
+
+/* Hover effect */
+.date-picker-popup>.popup-content>.calendar-pane>.day-cell:hover {
+    -fx-background-color: #666666;
+    -fx-text-fill: rgb(0, 0, 0);
+}
+
+/* Disabled/Unavailable dates */
+.date-picker-popup>.popup-content>.calendar-pane>.day-cell:disabled {
+    -fx-text-fill: #000000;
+}
+
+
+
+.text-field,
+.text-area {
+    -fx-background-color: rgb(29, 29, 29);
+    -fx-control-inner-background: rgb(29, 29, 29);
+    -fx-background-radius: 10;
+    -fx-text-fill: rgb(255, 255, 255);
+    -fx-prompt-text-fill: #838383;
+    -fx-text-alignment: right;
+
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.text-field:hover,
+.text-area:hover {
+    /* -fx-background-color: #666666; */
+    /* -fx-border-color: #ffffff; */
+    /* -fx-effect: brightness(1.2); */
+    -fx-border-radius: 0;
+    -fx-effect: innershadow(gaussian, #ffffff1c, 3000, 1, 0, 0);
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .content {
+    -fx-background-color: transparent;
+}
+
+
+.combo-box {
+    -fx-background-color: #292929;
+    -fx-text-fill: white;
+    -fx-border-color: #474747;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.combo-box .arrow {
+    -fx-background-color: white;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: #292929;
+    -fx-text-fill: white;
+}
+
+.combo-box .list-cell:hover {
+    -fx-background-color: #3a3a3a;
+}
+
+.combo-box .list-view {
+    -fx-background-color: #292929;
+    -fx-border-color: #474747;
+}
+
+.combo-box .list-view .list-cell {
+    -fx-text-fill: white;
+}
+
+.combo-box .list-view .list-cell:hover {
+    -fx-background-color: #3a3a3a;
+}
+
+/* Style for ScrollBars */
+.scroll-bar {
+    -fx-background-color: #292929;
+    -fx-pref-width: 10px;
+    /* Adjust width of scrollbar */
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #474747;
+    -fx-background-radius: 5px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #5a5a5a;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: #292929;
+}
+
+.scroll-bar .increment-button:hover,
+.scroll-bar .decrement-button:hover {
+    -fx-background-color: #3a3a3a;
+}
+
+/* Apply to all Scrollable Components */
+.scroll-bar .track {
+    -fx-background-color: #292929;
+}
