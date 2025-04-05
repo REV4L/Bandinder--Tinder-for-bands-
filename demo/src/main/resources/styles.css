@@ -2,7 +2,7 @@
     -fx-background-color: SYSTEM_COLOR;
     -fx-font-family: SYSTEM_FONT;
     -fx-font-size: 17;
-    -fx-effect: innershadow(gaussian, #000000, 3, 1, 0, 0);
+    -fx-effect: innershadow(gaussian, #ff0000, 3, 1, 0, 0);
 }
 
 /* .root {

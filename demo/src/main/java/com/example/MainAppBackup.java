@@ -46,7 +46,7 @@ import java.util.List;
 
 // import io.github.cdimascio.dotenv.Dotenv;
 
-public class MainApp extends Application {
+public class MainAppBackup extends Application {
 
     public static String appName = "VPIK (Miniprojekt)";
     public Stage primaryStage = null;
@@ -85,7 +85,7 @@ public class MainApp extends Application {
         StackPane stack = new StackPane();
         stack.setStyle("-fx-background-color: #3A3A3A;");
         root.setCenter(stack);
-        Scene scene = new Scene(root, 1400, 800);
+        Scene scene = new Scene(root, 600, 1000);
 
         if (Database.loggedIn()) {
             Database.getOrganizator();
