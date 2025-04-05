@@ -12,6 +12,10 @@
 
 } */
 
+.border {
+    -fx-effect: innershadow(gaussian, #00ff2a, 4, 1, 0, 0);
+}
+
 .userlabel {
     -fx-font-size: 24;
     /* -fx-font-style: bold; */
@@ -47,6 +51,10 @@
     /* -fx-border-radius: 5;
     -fx-border-color: #00000000; */
     /* -fx-effect: brightness(2); */
+}
+
+.navbar {
+    -fx-background-color: #1d1d1d;
 }
 
 .button:hover {

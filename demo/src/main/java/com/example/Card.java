@@ -50,6 +50,12 @@ public class Card {
         vb.getChildren().addAll(new Label("Name"), new Label("Instrument"));
 
         card = new StackPane();
+        card.getStyleClass().add("border");
+        card.setMaxWidth(w);
+        card.setMaxHeight(h);
+        card.setMinWidth(w);
+        card.setMinHeight(h);
+
         card.getChildren().addAll(r, vb);
 
         // card.setcinte

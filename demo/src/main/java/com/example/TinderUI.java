@@ -8,19 +8,23 @@ import java.nio.file.Paths;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class TinderUI extends Application {
-    private double startX;
     BorderPane root;
     StackPane stack;
     Scene scene;
@@ -32,7 +36,7 @@ public class TinderUI extends Application {
         stack = new StackPane();
         navbar = buildNavbar();
 
-        scene = new Scene(root, 400, 600);
+        scene = new Scene(root, 400, 750);
 
         root.setCenter(stack);
         root.setBottom(navbar);
@@ -44,6 +48,7 @@ public class TinderUI extends Application {
         primaryStage.setTitle("Bandinder");
         primaryStage.setScene(scene);
         primaryStage.show();
+        // primaryStage.setResizable(false);
     }
 
     public void loadCss() {
@@ -71,6 +76,13 @@ public class TinderUI extends Application {
     public HBox buildNavbar() {
         HBox n = new HBox();
 
+        n.setSpacing(20);
+        n.setPadding(new Insets(20));
+
+        n.getStyleClass().add("navbar");
+
+        n.getChildren().addAll(buildNavbarButton("A"), buildNavbarButton("B"), buildNavbarButton("C"));
+
         return n;
     }
 
@@ -78,7 +90,7 @@ public class TinderUI extends Application {
         Button button = new Button(text);
         button.getStyleClass().add("button");
 
-        button.setPrefWidth(200);
+        button.setPrefWidth(2000);
         button.setMaxHeight(40);
         return button;
     }
