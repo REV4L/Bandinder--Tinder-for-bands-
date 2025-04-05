@@ -4,9 +4,12 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
@@ -14,11 +17,11 @@ import javafx.util.Duration;
 public class Card {
     private double startX;
     private double dragStartX;
-    private Rectangle card;
+    private StackPane card;
 
     public Card() {
         this.card = createCard();
-        startX = card.getX();
+        // startX = card.getX();
         setUpMouseEvents();
 
         Timeline t = new Timeline(new KeyFrame(Duration.millis(1000 / 60.0), e -> updateAngle()));
@@ -26,15 +29,28 @@ public class Card {
         t.play();
     }
 
-    public Rectangle getCard() {
+    public StackPane getCard() {
         return card;
     }
 
-    public Rectangle createCard() {
-        Rectangle card = new Rectangle(300, 400);
-        card.setArcWidth(20);
-        card.setArcHeight(20);
-        card.setFill(Color.LIGHTBLUE);
+    public StackPane createCard() {
+        int w = 300;
+        int h = 400;
+
+        Rectangle r = new Rectangle(w, h);
+        r.setArcWidth(20);
+        r.setArcHeight(20);
+        r.setFill(Color.DARKSLATEGRAY);
+
+        VBox vb = new VBox();
+        vb.setMaxWidth(w);
+        vb.setMaxHeight(h);
+        vb.setMinWidth(w);
+        vb.setMinHeight(h);
+        vb.getChildren().addAll(new Label("Name"), new Label("Instrument"));
+
+        card = new StackPane();
+        card.getChildren().addAll(r, vb);
 
         // card.setcinte
 
@@ -42,7 +58,7 @@ public class Card {
     }
 
     private double getAngle() {
-        return (card.getTranslateX() - card.getX()) * -0.1;
+        return (card.getTranslateX()) * -0.1;
     }
 
     private void updateAngle() {
@@ -70,7 +86,7 @@ public class Card {
         updateAngle();
     }
 
-    private void handleSwipe(Rectangle card) {
+    private void handleSwipe(Node card) {
         double threshold = 150; // Define swipe threshold
 
         if (card.getTranslateX() > threshold) { // If the card is moved far enough to the right
@@ -82,7 +98,7 @@ public class Card {
         }
     }
 
-    private void animateCard(Rectangle card, double targetX) {
+    private void animateCard(Node card, double targetX) {
         TranslateTransition transition = new TranslateTransition(Duration.millis(300), card);
         transition.setToX(targetX); // Target position for the swipe
 
