@@ -24,7 +24,7 @@ public class Card {
         // startX = card.getX();
         setUpMouseEvents();
 
-        Timeline t = new Timeline(new KeyFrame(Duration.millis(1000 / 60.0), e -> updateAngle()));
+        Timeline t = new Timeline(new KeyFrame(Duration.millis(1000 / 60), e -> updateAngle()));
         t.setCycleCount(Animation.INDEFINITE); // loop forever
         t.play();
     }
