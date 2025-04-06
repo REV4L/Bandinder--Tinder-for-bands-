@@ -19,38 +19,50 @@ public class Card {
     private double dragStartX;
     private StackPane card;
 
-    public Card() {
-        this.card = createCard();
+    public Card(double w) {
+        this.card = createCard(w);
         // startX = card.getX();
         setUpMouseEvents();
 
         Timeline t = new Timeline(new KeyFrame(Duration.millis(1000 / 60), e -> updateAngle()));
         t.setCycleCount(Animation.INDEFINITE); // loop forever
         t.play();
+
     }
 
     public StackPane getCard() {
         return card;
     }
 
-    public StackPane createCard() {
-        int w = 300;
-        int h = 400;
+    public StackPane createCard(double w) {
+        // int w = 300;
+        // int h = 400;
+        int h = (int) (w * 4.0 / 3.0);
 
         Rectangle r = new Rectangle(w, h);
         r.setArcWidth(20);
         r.setArcHeight(20);
         r.setFill(Color.DARKSLATEGRAY);
 
+        r.getStyleClass().add("card");
+
+        int padding = 40;
         VBox vb = new VBox();
-        vb.setMaxWidth(w);
-        vb.setMaxHeight(h);
-        vb.setMinWidth(w);
-        vb.setMinHeight(h);
-        vb.getChildren().addAll(new Label("Name"), new Label("Instrument"));
+        vb.setMaxWidth(w - 40);
+        vb.setMaxHeight(h - 40);
+        vb.setMinWidth(w - 40);
+        vb.setMinHeight(h - 40);
+
+        var name = new Label("Name");
+        var instrument = new Label("Instrument");
+
+        name.getStyleClass().add("cname");
+        instrument.getStyleClass().add("cname");
+
+        vb.getChildren().addAll(name, instrument);
 
         card = new StackPane();
-        card.getStyleClass().add("border");
+        // card.getStyleClass().add("border");
         card.setMaxWidth(w);
         card.setMaxHeight(h);
         card.setMinWidth(w);

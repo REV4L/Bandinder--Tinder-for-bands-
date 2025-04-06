@@ -56,20 +56,26 @@ public class TinderUI extends Application {
 
     private Pane buildSwipePage() {
         StackPane p = new StackPane();
-        p.getChildren().add(new Card().getCard());
-        p.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null, null)));
+        p.getChildren().add(new Card(scene.getWidth() * 0.9).getCard());
+        // p.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null,
+        // null)));
+        p.getStyleClass().add("bg");
         return p;
     }
 
     private Pane buildMatchPage() {
         StackPane p = new StackPane();
-        p.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, null, null)));
+        // p.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, null,
+        // null)));
+        p.getStyleClass().add("bg");
         return p;
     }
 
     private Pane buildProfilePage() {
         StackPane p = new StackPane();
-        p.setBackground(new Background(new BackgroundFill(Color.LIGHTPINK, null, null)));
+        // p.setBackground(new Background(new BackgroundFill(Color.LIGHTPINK, null,
+        // null)));
+        p.getStyleClass().add("bg");
         return p;
     }
 
