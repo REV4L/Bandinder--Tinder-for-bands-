@@ -105,7 +105,7 @@ public class TinderUI extends Application {
     private HBox buildNavbar() {
         HBox n = new HBox();
 
-        n.setMinHeight(70);
+        n.setMinHeight(90);
         n.setSpacing(20);
         n.setPadding(new Insets(0, 0, 0, 0));
         n.getStyleClass().add("navbar");

@@ -1,11 +1,6 @@
 package com.example;
 
-import javafx.animation.Animation;
 import javafx.animation.*;
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -20,13 +15,17 @@ public class Card {
     private double startX;
     private double dragStartX;
     private StackPane card;
+    private Label name;
+    private Label instrument;
+
+    private Node swipeActionIndicator;
 
     public Card(double w) {
         this.card = createCard(w);
         // startX = card.getX();
         setUpMouseEvents();
 
-        Timeline t = new Timeline(new KeyFrame(Duration.millis(1000 / 60), e -> updateAngle()));
+        Timeline t = new Timeline(new KeyFrame(Duration.millis(1000 / 60), e -> tick()));
         t.setCycleCount(Animation.INDEFINITE); // loop forever
         t.play();
 
@@ -56,8 +55,10 @@ public class Card {
         vb.setMinWidth(w - 40);
         vb.setMinHeight(h - 40);
 
-        var name = new Label("Name");
-        var instrument = new Label("Instrument");
+        name = new Label("Name");
+        instrument = new Label("Instrument");
+
+        swipeActionIndicator = new Label("X");
 
         name.getStyleClass().add("cname");
         instrument.getStyleClass().add("cname");
@@ -80,8 +81,24 @@ public class Card {
         return (card.getTranslateX()) * -0.1;
     }
 
-    private void updateAngle() {
+    private void tick() {
         card.setRotate(getAngle());
+
+        var opacity = Math.abs(card.getTranslateX() * 1f / 100);
+
+        // swipeActionIndicator.setOpacity(Math.abs(card.getTranslateX() * 1f / 300));
+
+        double radius = 3;
+        double spread = 100;
+
+        if (card.getTranslateX() < 0)
+            // swipeActionIndicator.setStyle("-fx-text-fill: rgb(255, 67, 67);");
+            card.setStyle("-fx-effect: dropshadow(one-pass-box, rgba(255, 67, 67," + opacity + "), " + radius + ", "
+                    + spread + ", 0, 0);");
+        else
+            card.setStyle("-fx-effect: dropshadow(one-pass-box, rgba(93, 255, 107," + opacity + "), " + radius + ", "
+                    + spread + ", 0, 0);");
+
     }
 
     private void setUpMouseEvents() {
@@ -102,7 +119,7 @@ public class Card {
 
     private void released(MouseEvent event) {
         handleSwipe(card); // When mouse is released, handle the swipe behavior
-        updateAngle();
+        tick();
     }
 
     private void handleSwipe(Node card) {
@@ -125,7 +142,7 @@ public class Card {
             // If card was swiped out of bounds (left or right), reset position
             if (Math.abs(targetX) > 300) {
                 card.setTranslateX(0); // Reset card position to center
-                updateAngle();
+                tick();
                 appearAnim();
             }
         });
