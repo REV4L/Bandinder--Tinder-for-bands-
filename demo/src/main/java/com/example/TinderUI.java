@@ -9,8 +9,11 @@ import java.nio.file.Paths;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -60,6 +63,7 @@ public class TinderUI extends Application {
         // p.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null,
         // null)));
         p.getStyleClass().add("bg");
+        p.getStyleClass().add("page");
         return p;
     }
 
@@ -68,7 +72,25 @@ public class TinderUI extends Application {
         // p.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, null,
         // null)));
         p.getStyleClass().add("bg");
+        p.getStyleClass().add("page");
+
+        var vb = new VBox();
+        p.getChildren().add(vb);
+
+        vb.setAlignment(Pos.BASELINE_CENTER);
+        vb.setSpacing(10);
+
+        vb.getChildren().addAll(new Label("No matches yet... are you that ugly?"), buildMatchButton(),
+                buildMatchButton());
+
         return p;
+    }
+
+    private Button buildMatchButton() {
+        var b = new Button("n");
+        b.setPrefWidth(2000);
+
+        return b;
     }
 
     private Pane buildProfilePage() {
@@ -76,33 +98,55 @@ public class TinderUI extends Application {
         // p.setBackground(new Background(new BackgroundFill(Color.LIGHTPINK, null,
         // null)));
         p.getStyleClass().add("bg");
+        p.getStyleClass().add("page");
         return p;
     }
 
     private HBox buildNavbar() {
         HBox n = new HBox();
+
+        n.setMinHeight(70);
         n.setSpacing(20);
-        n.setPadding(new Insets(20));
+        n.setPadding(new Insets(0, 0, 0, 0));
         n.getStyleClass().add("navbar");
 
-        Button btnA = buildNavbarButton("Swipe");
-        Button btnB = buildNavbarButton("Match");
-        Button btnC = buildNavbarButton("Profile");
+        Button btnSwipe = buildNavbarButton("/swipe.png");
+        Button btnMatch = buildNavbarButton("/match.png");
+        Button btnProfile = buildNavbarButton("/profile.png");
 
-        btnA.setOnAction(e -> switchPage(swipePage));
-        btnB.setOnAction(e -> switchPage(matchPage));
-        btnC.setOnAction(e -> switchPage(profilePage));
+        btnSwipe.setOnAction(e -> switchPage(swipePage));
+        btnMatch.setOnAction(e -> switchPage(matchPage));
+        btnProfile.setOnAction(e -> switchPage(profilePage));
 
-        n.getChildren().addAll(btnA, btnB, btnC);
+        // Create spacers
+        Region s1 = new Region();
+        Region s2 = new Region();
+        Region s3 = new Region();
+        Region s4 = new Region();
+
+        // Let spacers grow
+        HBox.setHgrow(s1, Priority.ALWAYS);
+        HBox.setHgrow(s2, Priority.ALWAYS);
+        HBox.setHgrow(s3, Priority.ALWAYS);
+        HBox.setHgrow(s4, Priority.ALWAYS);
+
+        n.getChildren().addAll(s1, btnSwipe, s2, btnMatch, s3, btnProfile, s4);
         return n;
     }
 
-    private Button buildNavbarButton(String text) {
-        Button button = new Button(text);
-        button.getStyleClass().add("button");
+    private Button buildNavbarButton(String iconPath) {
+        Button button = new Button();
+        ImageView icon = new ImageView(getClass().getResource(iconPath).toExternalForm());
+        icon.setFitWidth(70);
+        icon.setFitHeight(70);
+
+        button.setGraphic(icon);
         HBox.setHgrow(button, Priority.ALWAYS);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setMaxHeight(40);
+        // button.setMaxWidth(Double.MAX_VALUE);
+        button.setMaxHeight(Double.MAX_VALUE);
+        button.getStyleClass().add("navbtn");
+        button.getStyleClass().remove("button");
+
         return button;
     }
 

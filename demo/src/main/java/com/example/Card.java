@@ -1,6 +1,8 @@
 package com.example;
 
 import javafx.animation.Animation;
+import javafx.animation.*;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
@@ -28,6 +30,8 @@ public class Card {
         t.setCycleCount(Animation.INDEFINITE); // loop forever
         t.play();
 
+        appearAnim();
+
     }
 
     public StackPane getCard() {
@@ -42,7 +46,6 @@ public class Card {
         Rectangle r = new Rectangle(w, h);
         r.setArcWidth(20);
         r.setArcHeight(20);
-        r.setFill(Color.DARKSLATEGRAY);
 
         r.getStyleClass().add("card");
 
@@ -69,8 +72,6 @@ public class Card {
         card.setMinHeight(h);
 
         card.getChildren().addAll(r, vb);
-
-        // card.setcinte
 
         return card;
     }
@@ -125,9 +126,34 @@ public class Card {
             if (Math.abs(targetX) > 300) {
                 card.setTranslateX(0); // Reset card position to center
                 updateAngle();
+                appearAnim();
             }
         });
 
         transition.play();
     }
+
+    private void appearAnim() {
+        card.setTranslateY(1000);
+        TranslateTransition transition = new TranslateTransition(Duration.millis(300), card);
+        transition.setToY(0); // Target position for the swipe
+        transition.setInterpolator(Interpolator.EASE_BOTH);
+
+        ScaleTransition transition1 = new ScaleTransition(Duration.millis(300), card);
+        transition1.setFromY(0); // Target position for the swipe
+        transition1.setFromX(0); // Target position for the swipe
+        transition1.setToY(1); // Target position for the swipe
+        transition1.setToX(1); // Target position for the swipe
+        transition1.setInterpolator(Interpolator.EASE_BOTH);
+
+        RotateTransition t3 = new RotateTransition(Duration.millis(300), card);
+        t3.setFromAngle(10);
+        t3.setToAngle(0);
+        t3.setInterpolator(Interpolator.EASE_BOTH);
+
+        transition.play();
+        transition1.play();
+        t3.play();
+    }
+
 }
