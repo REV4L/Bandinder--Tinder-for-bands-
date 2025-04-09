@@ -1,18 +1,22 @@
 package com.example;
 
 import javafx.animation.*;
+import javafx.beans.binding.DoubleBinding;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import javafx.beans.binding.Bindings;
 
 public class Card {
-    private double startX;
     private double dragStartX;
     private StackPane card;
     private Label name;
@@ -20,8 +24,8 @@ public class Card {
 
     private Node swipeActionIndicator;
 
-    public Card(double w) {
-        this.card = createCard(w);
+    public Card(Region r) {
+        this.card = createCard(r);
         // startX = card.getX();
         setUpMouseEvents();
 
@@ -37,7 +41,7 @@ public class Card {
         return card;
     }
 
-    public StackPane createCard(double w) {
+    public StackPane createCard(double w, int alalla) {
         // int w = 300;
         // int h = 400;
         int h = (int) (w * 4.0 / 3.0);
@@ -50,10 +54,10 @@ public class Card {
 
         int padding = 40;
         VBox vb = new VBox();
-        vb.setMaxWidth(w - 40);
-        vb.setMaxHeight(h - 40);
-        vb.setMinWidth(w - 40);
-        vb.setMinHeight(h - 40);
+        vb.setMaxWidth(w - padding);
+        vb.setMaxHeight(h - padding);
+        vb.setMinWidth(w - padding);
+        vb.setMinHeight(h - padding);
 
         name = new Label("Name");
         instrument = new Label("Instrument");
@@ -73,6 +77,67 @@ public class Card {
         card.setMinHeight(h);
 
         card.getChildren().addAll(r, vb);
+
+        return card;
+    }
+
+    public StackPane createCard(Region bindTo) {
+        Rectangle r = new Rectangle();
+        r.setArcWidth(20);
+        r.setArcHeight(20);
+        r.getStyleClass().add("card");
+
+        double padding = 10;
+
+        VBox vb = new VBox();
+        vb.setPadding(new Insets(padding));
+        vb.setAlignment(Pos.TOP_LEFT);
+        vb.setFillWidth(true);
+
+        name = new Label("Name");
+        instrument = new Label("Instrument");
+        swipeActionIndicator = new Label("X");
+
+        name.getStyleClass().add("cname");
+        instrument.getStyleClass().add("cname");
+
+        vb.getChildren().addAll(name, instrument);
+
+        card = new StackPane();
+        card.getChildren().addAll(r, vb);
+        card.setStyle("-fx-background-color: transparent;");
+
+        // BIND WIDTH TO PARENT WIDTH * 0.9
+        DoubleBinding maxCardWidthByWidth = bindTo.widthProperty().multiply(0.9);
+        DoubleBinding maxCardWidthByHeight = bindTo.heightProperty().subtract(150).multiply(3.0 / 4.0);
+
+        DoubleBinding cardWidth = Bindings.createDoubleBinding(
+                () -> Math.min(maxCardWidthByWidth.get(), maxCardWidthByHeight.get()),
+                maxCardWidthByWidth, maxCardWidthByHeight);
+
+        DoubleBinding cardHeight = cardWidth.multiply(4.0 / 3.0);
+
+        card.maxWidthProperty().bind(cardWidth);
+        card.minWidthProperty().bind(cardWidth);
+        card.prefWidthProperty().bind(cardWidth);
+
+        card.maxHeightProperty().bind(cardHeight);
+        card.minHeightProperty().bind(cardHeight);
+        card.prefHeightProperty().bind(cardHeight);
+
+        r.widthProperty().bind(cardWidth);
+        r.heightProperty().bind(cardHeight);
+
+        DoubleBinding vbWidth = cardWidth.subtract(padding * 2);
+        DoubleBinding vbHeight = cardHeight.subtract(padding * 2);
+
+        vb.maxWidthProperty().bind(vbWidth);
+        vb.minWidthProperty().bind(vbWidth);
+        vb.prefWidthProperty().bind(vbWidth);
+
+        vb.maxHeightProperty().bind(vbHeight);
+        vb.minHeightProperty().bind(vbHeight);
+        vb.prefHeightProperty().bind(vbHeight);
 
         return card;
     }

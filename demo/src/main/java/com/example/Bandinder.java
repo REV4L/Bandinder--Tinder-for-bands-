@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -13,13 +14,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-public class TinderUI extends Application {
+public class Bandinder extends Application {
     private BorderPane root;
     private StackPane stack;
     private Scene scene;
@@ -30,6 +32,13 @@ public class TinderUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        try {
+            Database.connect();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         root = new BorderPane();
         stack = new StackPane();
         navbar = buildNavbar();
@@ -55,11 +64,13 @@ public class TinderUI extends Application {
         primaryStage.setTitle("Bandinder");
         primaryStage.setScene(scene);
         primaryStage.show();
+
     }
 
     private Pane buildSwipePage() {
         StackPane p = new StackPane();
-        p.getChildren().add(new Card(scene.getWidth() * 0.9).getCard());
+        p.getChildren().add(new Card(root).getCard());
+        // p.getChildren().add(new Card(scene.getWidth() * 0.9).getCard());
         // p.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, null,
         // null)));
         p.getStyleClass().add("bg");
@@ -68,29 +79,64 @@ public class TinderUI extends Application {
     }
 
     private Pane buildMatchPage() {
-        StackPane p = new StackPane();
-        // p.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, null,
-        // null)));
-        p.getStyleClass().add("bg");
-        p.getStyleClass().add("page");
+        VBox content = new VBox(10); // less spacing between title and scroll
+        content.setAlignment(Pos.TOP_CENTER);
+        content.setPadding(Insets.EMPTY); // ⛔ remove all outside padding
+        content.getStyleClass().add("page");
 
-        var vb = new VBox();
-        p.getChildren().add(vb);
+        Label title = new Label("🔥 Matches");
+        title.getStyleClass().add("cname");
 
-        vb.setAlignment(Pos.BASELINE_CENTER);
-        vb.setSpacing(10);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setPadding(Insets.EMPTY); // ⛔ no scroll padding
+        scrollPane.getStyleClass().addAll("scroll-pane", "transparent");
 
-        vb.getChildren().addAll(new Label("No matches yet... are you that ugly?"), buildMatchButton(),
-                buildMatchButton());
+        VBox matchList = new VBox(15);
+        matchList.setFillWidth(true);
+        matchList.setPadding(Insets.EMPTY); // ⛔ no VBox padding
+        matchList.setStyle("-fx-background-color: transparent;");
+        matchList.setAlignment(Pos.TOP_CENTER); // align items neatly
 
-        return p;
+        for (int i = 0; i < 50; i++) {
+            matchList.getChildren().add(buildMatchItem(
+                    "Band #" + (i + 1),
+                    "Rock • Guitar",
+                    "Contact: band" + (i + 1) + "@music.com"));
+        }
+
+        scrollPane.setContent(matchList);
+        content.getChildren().addAll(title, scrollPane);
+
+        return content;
     }
 
-    private Button buildMatchButton() {
-        var b = new Button("n");
-        b.setPrefWidth(2000);
+    private HBox buildMatchItem(String title, String subtitle, String contact) {
+        VBox infoBox = new VBox(5);
+        infoBox.setAlignment(Pos.CENTER_LEFT);
 
-        return b;
+        Label name = new Label(title);
+        name.getStyleClass().add("userlabel");
+
+        Label instrument = new Label(subtitle);
+        instrument.getStyleClass().add("label");
+
+        Label email = new Label(contact);
+        email.getStyleClass().add("label");
+
+        infoBox.getChildren().addAll(name, instrument, email);
+
+        HBox item = new HBox(10);
+        item.setPadding(new Insets(10));
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.getStyleClass().add("group");
+
+        item.getChildren().addAll(infoBox);
+
+        return item;
     }
 
     private Pane buildProfilePage() {
@@ -106,7 +152,8 @@ public class TinderUI extends Application {
         HBox n = new HBox();
 
         n.setMinHeight(90);
-        n.setSpacing(20);
+        n.setMinWidth(0);
+        n.setSpacing(0);
         n.setPadding(new Insets(0, 0, 0, 0));
         n.getStyleClass().add("navbar");
 
@@ -137,13 +184,16 @@ public class TinderUI extends Application {
     private Button buildNavbarButton(String iconPath) {
         Button button = new Button();
         ImageView icon = new ImageView(getClass().getResource(iconPath).toExternalForm());
+
         icon.setFitWidth(70);
         icon.setFitHeight(70);
 
         button.setGraphic(icon);
-        HBox.setHgrow(button, Priority.ALWAYS);
+
+        HBox.setHgrow(button, Priority.NEVER);
         // button.setMaxWidth(Double.MAX_VALUE);
         button.setMaxHeight(Double.MAX_VALUE);
+        button.setMinWidth(0);
         button.getStyleClass().add("navbtn");
         button.getStyleClass().remove("button");
 
