@@ -112,7 +112,7 @@ public class Bandinder extends Application {
     private Pane buildLoginPane() {
         VBox login = new VBox(10);
         login.setAlignment(Pos.CENTER);
-        login.setPadding(new Insets(30));
+        login.setPadding(Insets.EMPTY);
         login.getStyleClass().add("page");
 
         Label title = new Label("🎸 Login");
@@ -150,7 +150,7 @@ public class Bandinder extends Application {
     private Pane buildRegisterPane() {
         VBox reg = new VBox(10);
         reg.setAlignment(Pos.CENTER);
-        reg.setPadding(new Insets(30));
+        reg.setPadding(Insets.EMPTY);
         reg.getStyleClass().add("page");
 
         Label title = new Label("🎶 Register");
@@ -185,7 +185,7 @@ public class Bandinder extends Application {
         VBox content = new VBox(10); // less spacing between title and scroll
         content.setAlignment(Pos.TOP_CENTER);
         content.setPadding(Insets.EMPTY); // remove all outside padding
-        content.getStyleClass().add("page");
+        // content.getStyleClass().add("page");
 
         Label title = new Label("🔥 Matches");
         title.getStyleClass().add("cname");
@@ -195,6 +195,7 @@ public class Bandinder extends Application {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        // scrollPane.setPadding(new Insets(10)); // no scroll padding
         scrollPane.setPadding(Insets.EMPTY); // no scroll padding
         scrollPane.getStyleClass().addAll("scroll-pane", "transparent");
 
@@ -244,11 +245,13 @@ public class Bandinder extends Application {
 
     private Pane buildProfilePage() {
         StackPane root = new StackPane();
-        root.getStyleClass().addAll("bg", "page");
+        // root.getStyleClass().addAll("bg", "page");
+        // root.getStyleClass().add("page");
 
         VBox content = new VBox(20);
         content.setPadding(new Insets(30));
         content.setAlignment(Pos.TOP_CENTER);
+        // content.getStyleClass().add("page");
 
         Label heading = new Label("Edit Profile");
         heading.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
