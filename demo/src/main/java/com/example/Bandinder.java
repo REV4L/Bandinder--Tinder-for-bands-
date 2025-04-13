@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class Bandinder extends Application {
-    private BorderPane root;
+    private StackPane root;
     private StackPane stack;
     private Scene scene;
 
@@ -56,29 +56,32 @@ public class Bandinder extends Application {
             e.printStackTrace();
         }
 
-        root = new BorderPane();
-        stack = new StackPane();
-        navbar = buildNavbar();
-
+        root = new StackPane();
         scene = new Scene(root, 400, 750);
-        root.setCenter(stack);
-        root.setBottom(navbar);
         root.getStyleClass().add("root");
 
+        stack = new StackPane();
         authStack = buildAuthStack();
         swipePage = buildSwipePage();
         matchPage = buildMatchPage();
         profilePage = buildProfilePage();
 
         stack.getChildren().addAll(authStack, swipePage, matchPage, profilePage);
-
         authStack.setVisible(true);
-        navbar.setVisible(false);
-
         swipePage.setVisible(false);
         matchPage.setVisible(false);
         profilePage.setVisible(false);
         currentPage = swipePage;
+
+        navbar = buildNavbar();
+        navbar.setVisible(false); // initially hidden
+
+        navbar.setMaxHeight(60);
+        StackPane.setAlignment(navbar, Pos.BOTTOM_CENTER);
+
+        StackPane.setAlignment(navbar, Pos.BOTTOM_CENTER);
+
+        root.getChildren().addAll(stack, navbar);
 
         loadCss();
 
