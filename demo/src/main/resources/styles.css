@@ -22,6 +22,7 @@
     -fx-border-radius: 0;
     -fx-border-style: outside;
     -fx-background-color: #101010;
+    -fx-min-width: 0;
 }
 
 .navbar {
@@ -66,12 +67,62 @@
     -fx-background-radius: 5px;
 }
 
+.image-frame {
+    -fx-background-color: transparent;
+    -fx-border-color: #4e4e4e;
+    -fx-border-width: 2px;
+    -fx-border-radius: 16px;
+    -fx-padding: 4px;
+    -fx-background-radius: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.479), 4, 0, 1, 1);
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s ease;
+}
+
+.image-frame:hover {
+    -fx-border-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.466), 8, 0, 0, 0);
+}
+
+.remove-button {
+    -fx-background-color: rgb(255, 70, 70);
+    -fx-fill: rgb(255, 70, 70);
+    -fx-text-fill: white;
+    -fx-font-size: 5px;
+    -fx-pref-width: 20px;
+    -fx-pref-height: 20px;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+}
+
+
+
 .scroll-pane {
     -fx-background-color: SYSTEM_COLOR;
     /* -fx-background-color: #3f3f3f; */
     /* -fx-font-family: "Trebuchet MS"; */
-    -fx-font-size: 17;
+    -fx-background-insets: 0;
+    /* -fx-font-size: 17; */
 }
+
+
+/* ScrollPane should be fully transparent */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* Inner content of scrollpane (FlowPane) */
+.scroll-pane>.viewport {
+    -fx-background-color: transparent;
+}
+
+/* FlowPane inside profile */
+.flow-pane {
+    -fx-background-color: transparent;
+}
+
 
 .label {
     -fx-text-fill: white;

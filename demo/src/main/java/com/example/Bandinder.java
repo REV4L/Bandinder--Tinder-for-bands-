@@ -1,5 +1,9 @@
 package com.example;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,18 +18,32 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class Bandinder extends Application {
     private BorderPane root;
     private StackPane stack;
     private Scene scene;
+
     private HBox navbar;
+
+    private StackPane authStack;
+    private Pane loginPane, registerPane;
 
     private Pane swipePage, matchPage, profilePage;
     private Pane currentPage;
@@ -35,7 +53,6 @@ public class Bandinder extends Application {
         try {
             Database.connect();
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -48,13 +65,17 @@ public class Bandinder extends Application {
         root.setBottom(navbar);
         root.getStyleClass().add("root");
 
+        authStack = buildAuthStack();
         swipePage = buildSwipePage();
         matchPage = buildMatchPage();
         profilePage = buildProfilePage();
 
-        stack.getChildren().addAll(swipePage, matchPage, profilePage);
+        stack.getChildren().addAll(authStack, swipePage, matchPage, profilePage);
 
-        swipePage.setVisible(true);
+        authStack.setVisible(true);
+        navbar.setVisible(false);
+
+        swipePage.setVisible(false);
         matchPage.setVisible(false);
         profilePage.setVisible(false);
         currentPage = swipePage;
@@ -64,7 +85,14 @@ public class Bandinder extends Application {
         primaryStage.setTitle("Bandinder");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
 
+    private StackPane buildAuthStack() {
+        loginPane = buildLoginPane();
+        registerPane = buildRegisterPane();
+        authStack = new StackPane(loginPane, registerPane);
+        registerPane.setVisible(false);
+        return authStack;
     }
 
     private Pane buildSwipePage() {
@@ -78,10 +106,82 @@ public class Bandinder extends Application {
         return p;
     }
 
+    private Pane buildLoginPane() {
+        VBox login = new VBox(10);
+        login.setAlignment(Pos.CENTER);
+        login.setPadding(new Insets(30));
+        login.getStyleClass().add("page");
+
+        Label title = new Label("🎸 Login");
+        title.getStyleClass().add("cname");
+
+        TextField emailField = new TextField();
+        emailField.setPromptText("Email");
+
+        PasswordField passField = new PasswordField();
+        passField.setPromptText("Password");
+
+        Button loginBtn = new Button("Log In");
+        loginBtn.setOnAction(e -> {
+            Database.loginBand(emailField.getText(), passField.getText(), c -> {
+                if (c) {
+                    authStack.setVisible(false); // Hide auth UI
+                    navbar.setVisible(true);
+                    switchPage(swipePage); // Go to app
+
+                    profilePage.getChildren().setAll(buildProfilePage());
+                } else {
+                    emailField.setStyle("-fx-border-color: red;");
+                    passField.setStyle("-fx-border-color: red;");
+                }
+            });
+        });
+
+        Button toRegister = new Button("No account? Register");
+        toRegister.setOnAction(e -> slideTo(loginPane, registerPane, authStack, false));
+
+        login.getChildren().addAll(title, emailField, passField, loginBtn, toRegister);
+        return login;
+    }
+
+    private Pane buildRegisterPane() {
+        VBox reg = new VBox(10);
+        reg.setAlignment(Pos.CENTER);
+        reg.setPadding(new Insets(30));
+        reg.getStyleClass().add("page");
+
+        Label title = new Label("🎶 Register");
+        title.getStyleClass().add("cname");
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Band Name");
+
+        TextField emailField = new TextField();
+        emailField.setPromptText("Email");
+
+        PasswordField passField = new PasswordField();
+        passField.setPromptText("Password");
+
+        Button regBtn = new Button("Create Account");
+        regBtn.setOnAction(e -> {
+            boolean ok = Database.registerBand(nameField.getText(), emailField.getText(), passField.getText());
+            if (ok)
+                slideTo(registerPane, loginPane, authStack, true);
+            else
+                emailField.setStyle("-fx-border-color: red;");
+        });
+
+        Button backToLogin = new Button("← Back to login");
+        backToLogin.setOnAction(e -> slideTo(registerPane, loginPane, authStack, true));
+
+        reg.getChildren().addAll(title, nameField, emailField, passField, regBtn, backToLogin);
+        return reg;
+    }
+
     private Pane buildMatchPage() {
         VBox content = new VBox(10); // less spacing between title and scroll
         content.setAlignment(Pos.TOP_CENTER);
-        content.setPadding(Insets.EMPTY); // ⛔ remove all outside padding
+        content.setPadding(Insets.EMPTY); // remove all outside padding
         content.getStyleClass().add("page");
 
         Label title = new Label("🔥 Matches");
@@ -92,12 +192,12 @@ public class Bandinder extends Application {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setPadding(Insets.EMPTY); // ⛔ no scroll padding
+        scrollPane.setPadding(Insets.EMPTY); // no scroll padding
         scrollPane.getStyleClass().addAll("scroll-pane", "transparent");
 
         VBox matchList = new VBox(15);
         matchList.setFillWidth(true);
-        matchList.setPadding(Insets.EMPTY); // ⛔ no VBox padding
+        matchList.setPadding(Insets.EMPTY); // no VBox padding
         matchList.setStyle("-fx-background-color: transparent;");
         matchList.setAlignment(Pos.TOP_CENTER); // align items neatly
 
@@ -140,12 +240,88 @@ public class Bandinder extends Application {
     }
 
     private Pane buildProfilePage() {
-        StackPane p = new StackPane();
-        // p.setBackground(new Background(new BackgroundFill(Color.LIGHTPINK, null,
-        // null)));
-        p.getStyleClass().add("bg");
-        p.getStyleClass().add("page");
-        return p;
+        StackPane root = new StackPane();
+        root.getStyleClass().addAll("bg", "page");
+
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(30));
+        content.setAlignment(Pos.TOP_CENTER);
+
+        Label heading = new Label("Edit Profile");
+        heading.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        FlowPane flow = new FlowPane();
+        flow.setHgap(20);
+        flow.setVgap(20);
+        flow.setAlignment(Pos.CENTER);
+        flow.getStyleClass().add("flow-pane");
+
+        List<byte[]> existingImages = Database.loadImages(Database.bandId);
+
+        for (int i = 0; i < 6; i++) {
+            int imageIndex = i;
+
+            ImageView imageView;
+            if (existingImages.get(i) != null) {
+                imageView = new ImageView(new Image(new ByteArrayInputStream(existingImages.get(i))));
+            } else {
+                imageView = new ImageView(new Image(getClass().getResourceAsStream("/logo.png")));
+            }
+
+            imageView.setFitWidth(100);
+            imageView.setFitHeight(140);
+            imageView.setPreserveRatio(false);
+            imageView.setSmooth(true);
+            imageView.setCache(true);
+            Rectangle clip = new Rectangle(100, 140);
+            clip.setArcWidth(20);
+            clip.setArcHeight(20);
+            imageView.setClip(clip);
+
+            StackPane imageFrame = new StackPane();
+            imageFrame.getStyleClass().add("image-frame");
+
+            Button removeBtn = new Button("✕");
+            removeBtn.getStyleClass().add("button");
+            removeBtn.getStyleClass().remove("remove-button");
+            removeBtn.setOnAction(e -> {
+                Database.deleteImage(Database.bandId, imageIndex);
+                imageView.setImage(new Image(getClass().getResourceAsStream("/logo.png")));
+                e.consume();
+            });
+
+            StackPane.setAlignment(removeBtn, Pos.TOP_RIGHT);
+            imageFrame.getChildren().addAll(imageView, removeBtn);
+
+            imageFrame.setOnMouseClicked(e -> {
+                if (e.getTarget() instanceof Button)
+                    return;
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Select Profile Image");
+                File selectedFile = fileChooser.showOpenDialog(root.getScene().getWindow());
+                if (selectedFile != null) {
+                    try {
+                        byte[] imageBytes = Files.readAllBytes(selectedFile.toPath());
+                        Database.saveImage(imageBytes, Database.bandId, imageIndex);
+                        imageView.setImage(new Image(new FileInputStream(selectedFile)));
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+
+            flow.getChildren().add(imageFrame);
+        }
+
+        content.getChildren().addAll(heading, flow);
+
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.getStyleClass().add("scroll-pane");
+
+        root.getChildren().add(scrollPane);
+        return root;
     }
 
     private HBox buildNavbar() {
