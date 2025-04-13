@@ -130,9 +130,10 @@ public class Bandinder extends Application {
                 if (c) {
                     authStack.setVisible(false); // Hide auth UI
                     navbar.setVisible(true);
-                    switchPage(swipePage); // Go to app
 
                     profilePage.getChildren().setAll(buildProfilePage());
+                    swipePage.setVisible(true);
+                    switchPage(swipePage); // Go to app
                 } else {
                     emailField.setStyle("-fx-border-color: red;");
                     passField.setStyle("-fx-border-color: red;");
@@ -271,7 +272,7 @@ public class Bandinder extends Application {
             if (existingImages.get(i) != null) {
                 imageView = new ImageView(new Image(new ByteArrayInputStream(existingImages.get(i))));
             } else {
-                imageView = new ImageView(new Image(getClass().getResourceAsStream("/logo.png")));
+                imageView = new ImageView(new Image(getClass().getResourceAsStream("/blank.png")));
             }
 
             imageView.setFitWidth(100);
@@ -292,7 +293,7 @@ public class Bandinder extends Application {
             removeBtn.getStyleClass().remove("remove-button");
             removeBtn.setOnAction(e -> {
                 Database.deleteImage(Database.bandId, imageIndex);
-                imageView.setImage(new Image(getClass().getResourceAsStream("/logo.png")));
+                imageView.setImage(new Image(getClass().getResourceAsStream("/blank.png")));
                 e.consume();
             });
 

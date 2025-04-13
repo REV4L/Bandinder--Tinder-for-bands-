@@ -1,4 +1,3 @@
-// --- Card.java ---
 package com.example;
 
 import javafx.animation.*;
@@ -11,13 +10,15 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
+
+import java.io.ByteArrayInputStream;
+import java.util.List;
 
 public class Card {
     private double dragStartX;
@@ -26,6 +27,10 @@ public class Card {
     private Label instrument;
     private Label genre;
     private Label swipeIndicator;
+    private ImageView imageView;
+    private HBox progressBar;
+    private List<Image> images;
+    private int currentImageIndex = 0;
 
     public Card(Region r) {
         this.card = createCard(r);
@@ -36,25 +41,48 @@ public class Card {
         t.play();
 
         appearAnim();
+        nextSuggestion();
     }
 
     public StackPane getCard() {
         return card;
     }
 
+    public void nextSuggestion() {
+        new Thread(() -> {
+            int nextId = Database.getBestBandMatch(Database.bandId, 1);
+            if (nextId >= 0) {
+                Band band = Database.getBandInfo(nextId);
+                List<Image> imgs = Database.getBandImages(nextId);
+                javafx.application.Platform.runLater(() -> {
+                    setBand(band);
+                    setImages(imgs);
+                });
+            }
+        }).start();
+    }
+
+    private void setBand(Band band) {
+        if (band == null)
+            return;
+        name.setText(band.name);
+        instrument.setText(band.bio);
+        genre.setText(band.email);
+    }
+
     public StackPane createCard(Region bindTo) {
         double padding = 10;
 
-        ImageView image = new ImageView(new Image("https://via.placeholder.com/400x533"));
-        image.setPreserveRatio(false);
-        image.setSmooth(true);
-        image.setCache(true);
+        imageView = new ImageView();
+        imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
+        imageView.setCache(true);
 
         Rectangle r = new Rectangle();
         r.setArcWidth(20);
         r.setArcHeight(20);
 
-        StackPane imageHolder = new StackPane(image);
+        StackPane imageHolder = new StackPane(imageView);
         imageHolder.setStyle("-fx-background-color: #181818; -fx-background-radius: 20;");
         imageHolder.setClip(r);
 
@@ -73,25 +101,26 @@ public class Card {
         vb.setAlignment(Pos.BOTTOM_LEFT);
         vb.setPadding(new Insets(padding));
 
-        card = new StackPane(imageHolder, vb, swipeIndicator);
+        progressBar = new HBox(5);
+        progressBar.setAlignment(Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(progressBar, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(progressBar, new Insets(0, 0, 10, 0));
+
+        card = new StackPane(imageHolder, vb, swipeIndicator, progressBar);
         card.getStyleClass().add("card");
         card.setStyle(
                 "-fx-background-color: transparent; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.2, 0, 0);");
 
-        // BIND WIDTH TO PARENT WIDTH * 0.9
         DoubleBinding maxCardWidthByWidth = bindTo.widthProperty().multiply(0.9);
         DoubleBinding maxCardWidthByHeight = bindTo.heightProperty().subtract(150).multiply(3.0 / 4.0);
-
         DoubleBinding cardWidth = Bindings.createDoubleBinding(
-                () -> Math.min(maxCardWidthByWidth.get(), maxCardWidthByHeight.get()),
-                maxCardWidthByWidth, maxCardWidthByHeight);
-
+                () -> Math.min(maxCardWidthByWidth.get(), maxCardWidthByHeight.get()), maxCardWidthByWidth,
+                maxCardWidthByHeight);
         DoubleBinding cardHeight = cardWidth.multiply(4.0 / 3.0);
 
         card.maxWidthProperty().bind(cardWidth);
         card.minWidthProperty().bind(cardWidth);
         card.prefWidthProperty().bind(cardWidth);
-
         card.maxHeightProperty().bind(cardHeight);
         card.minHeightProperty().bind(cardHeight);
         card.prefHeightProperty().bind(cardHeight);
@@ -99,31 +128,61 @@ public class Card {
         r.widthProperty().bind(cardWidth);
         r.heightProperty().bind(cardHeight);
 
-        DoubleBinding vbWidth = cardWidth.subtract(padding * 2);
-        DoubleBinding vbHeight = cardHeight.subtract(padding * 2);
+        vb.maxWidthProperty().bind(cardWidth.subtract(padding * 2));
+        vb.prefWidthProperty().bind(cardWidth.subtract(padding * 2));
 
-        vb.maxWidthProperty().bind(vbWidth);
-        vb.minWidthProperty().bind(vbWidth);
-        vb.prefWidthProperty().bind(vbWidth);
-
-        vb.maxHeightProperty().bind(vbHeight);
-        vb.minHeightProperty().bind(vbHeight);
-        vb.prefHeightProperty().bind(vbHeight);
+        card.setOnMouseClicked(e -> {
+            if (images == null || images.size() <= 1)
+                return;
+            if (e.getX() > card.getWidth() / 2)
+                nextImage();
+            else
+                previousImage();
+        });
 
         return card;
     }
 
+    private void setImages(List<Image> imgs) {
+        this.images = imgs;
+        this.currentImageIndex = 0;
+        updateImage();
+    }
+
+    private void updateImage() {
+        if (images == null || images.isEmpty())
+            return;
+        imageView.setImage(images.get(currentImageIndex));
+        progressBar.getChildren().clear();
+        for (int i = 0; i < images.size(); i++) {
+            Circle dot = new Circle(5);
+            dot.setFill(i == currentImageIndex ? Color.WHITE : Color.GRAY);
+            progressBar.getChildren().add(dot);
+        }
+    }
+
+    private void nextImage() {
+        if (images == null || images.size() <= 1)
+            return;
+        currentImageIndex = (currentImageIndex + 1) % images.size();
+        updateImage();
+    }
+
+    private void previousImage() {
+        if (images == null || images.size() <= 1)
+            return;
+        currentImageIndex = (currentImageIndex - 1 + images.size()) % images.size();
+        updateImage();
+    }
+
     private double getAngle() {
-        return (card.getTranslateX()) * -0.1;
+        return card.getTranslateX() * -0.1;
     }
 
     private void tick() {
         card.setRotate(getAngle());
         double x = card.getTranslateX();
-
-        double opacity = Math.abs(x) / 150.0;
-        if (opacity < 0.01)
-            opacity = 0.01;
+        double opacity = Math.max(Math.abs(x) / 150.0, 0.01);
 
         double radius = 10;
         double spread = 100;
@@ -193,6 +252,7 @@ public class Card {
                 card.setTranslateX(0);
                 tick();
                 appearAnim();
+                nextSuggestion();
             }
         });
 

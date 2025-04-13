@@ -1,5 +1,6 @@
 package com.example;
 
+import java.io.ByteArrayInputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,7 +8,7 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
+import javafx.scene.image.Image;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.util.function.Consumer;
@@ -68,6 +69,59 @@ public class Database {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static Band getBandInfo(int bandId) {
+        String query = "SELECT * FROM get_band_info(?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, bandId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Band(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("bio"),
+                        rs.getString("email"),
+                        rs.getString("phone"),
+                        rs.getTimestamp("dt"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static List<Image> getBandImages(int bandId) {
+        List<Image> images = new ArrayList<>();
+        String query = "SELECT * FROM get_band_images(?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, bandId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                byte[] data = rs.getBytes("data");
+                if (data != null && data.length > 0) {
+                    images.add(new Image(new ByteArrayInputStream(data)));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return images;
+    }
+
+    public static int getBestBandMatch(int bandId, int minSharedTags) {
+        String query = "SELECT * FROM get_best_band_match(?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, bandId);
+            stmt.setInt(2, minSharedTags);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("band_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1; // return -1 if no match found
     }
 
     public static List<byte[]> loadImages(int bandId) {
