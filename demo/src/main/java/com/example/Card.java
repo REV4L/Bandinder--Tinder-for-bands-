@@ -24,7 +24,7 @@ public class Card {
     private double dragStartX;
     private StackPane card;
     private Label name;
-    private Label instrument;
+    private Label bio;
     private Label genre;
     private Label swipeIndicator;
     private ImageView imageView;
@@ -50,7 +50,9 @@ public class Card {
 
     public void nextSuggestion() {
         new Thread(() -> {
+            card.setTranslateY(1000);
             int nextId = Database.getBestBandMatch(Database.bandId, 1);
+            System.out.println(nextId);
             if (nextId >= 0) {
                 Band band = Database.getBandInfo(nextId);
                 List<Image> imgs = Database.getBandImages(nextId);
@@ -59,6 +61,8 @@ public class Card {
                     setImages(imgs);
                 });
             }
+
+            appearAnim();
         }).start();
     }
 
@@ -66,7 +70,7 @@ public class Card {
         if (band == null)
             return;
         name.setText(band.name);
-        instrument.setText(band.bio);
+        bio.setText(band.bio);
         genre.setText(band.email);
     }
 
@@ -74,30 +78,38 @@ public class Card {
         double padding = 10;
 
         imageView = new ImageView();
-        imageView.setPreserveRatio(false);
+        imageView.setPreserveRatio(false); // Fill the entire area
         imageView.setSmooth(true);
         imageView.setCache(true);
+
+        // Bind imageView size to card size
+        DoubleBinding cardWidth = bindTo.widthProperty().multiply(0.9);
+        DoubleBinding cardHeight = cardWidth.multiply(4.0 / 3.0);
+        imageView.fitWidthProperty().bind(cardWidth);
+        imageView.fitHeightProperty().bind(cardHeight);
 
         Rectangle r = new Rectangle();
         r.setArcWidth(20);
         r.setArcHeight(20);
+        r.widthProperty().bind(cardWidth);
+        r.heightProperty().bind(cardHeight);
 
         StackPane imageHolder = new StackPane(imageView);
         imageHolder.setStyle("-fx-background-color: #181818; -fx-background-radius: 20;");
         imageHolder.setClip(r);
 
         name = new Label("Name");
-        instrument = new Label("Instrument");
+        bio = new Label("Instrument");
         genre = new Label("Genre");
         swipeIndicator = new Label();
         swipeIndicator.setStyle(
                 "-fx-font-size: 48; -fx-font-weight: bold; -fx-text-fill: white; -fx-opacity: 0; -fx-font-family: 'Comic Sans MS';");
 
         name.setStyle("-fx-font-size: 28; -fx-text-fill: white; -fx-font-family: 'Trebuchet MS';");
-        instrument.setStyle("-fx-font-size: 22; -fx-text-fill: white; -fx-font-family: 'Trebuchet MS';");
+        bio.setStyle("-fx-font-size: 22; -fx-text-fill: white; -fx-font-family: 'Trebuchet MS';");
         genre.setStyle("-fx-font-size: 22; -fx-text-fill: white; -fx-font-family: 'Trebuchet MS';");
 
-        VBox vb = new VBox(5, name, instrument, genre);
+        VBox vb = new VBox(5, name, bio, genre);
         vb.setAlignment(Pos.BOTTOM_LEFT);
         vb.setPadding(new Insets(padding));
 
@@ -111,22 +123,12 @@ public class Card {
         card.setStyle(
                 "-fx-background-color: transparent; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.2, 0, 0);");
 
-        DoubleBinding maxCardWidthByWidth = bindTo.widthProperty().multiply(0.9);
-        DoubleBinding maxCardWidthByHeight = bindTo.heightProperty().subtract(150).multiply(3.0 / 4.0);
-        DoubleBinding cardWidth = Bindings.createDoubleBinding(
-                () -> Math.min(maxCardWidthByWidth.get(), maxCardWidthByHeight.get()), maxCardWidthByWidth,
-                maxCardWidthByHeight);
-        DoubleBinding cardHeight = cardWidth.multiply(4.0 / 3.0);
-
         card.maxWidthProperty().bind(cardWidth);
         card.minWidthProperty().bind(cardWidth);
         card.prefWidthProperty().bind(cardWidth);
         card.maxHeightProperty().bind(cardHeight);
         card.minHeightProperty().bind(cardHeight);
         card.prefHeightProperty().bind(cardHeight);
-
-        r.widthProperty().bind(cardWidth);
-        r.heightProperty().bind(cardHeight);
 
         vb.maxWidthProperty().bind(cardWidth.subtract(padding * 2));
         vb.prefWidthProperty().bind(cardWidth.subtract(padding * 2));
@@ -251,7 +253,7 @@ public class Card {
             if (Math.abs(targetX) > 300) {
                 card.setTranslateX(0);
                 tick();
-                appearAnim();
+                // appearAnim();
                 nextSuggestion();
             }
         });
