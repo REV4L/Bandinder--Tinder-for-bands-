@@ -21,6 +21,7 @@ public class Database {
     public static Connection conn = null;
 
     public static int bandId = -1;
+    public static Band band;
 
     public static boolean loggedIn() {
         return bandId >= 0;
@@ -44,6 +45,7 @@ public class Database {
                 int id = rs.getInt(1);
                 if (id >= 0) {
                     bandId = id;
+                    band = getBandInfo(bandId); // ✅ move this BEFORE callback
                     callback.accept(true);
                     return true;
                 }
@@ -83,7 +85,8 @@ public class Database {
                         rs.getString("bio"),
                         rs.getString("email"),
                         rs.getString("phone"),
-                        rs.getTimestamp("dt"));
+                        rs.getTimestamp("dt"),
+                        rs.getInt("kraj_id"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -122,6 +125,21 @@ public class Database {
             e.printStackTrace();
         }
         return -1; // return -1 if no match found
+    }
+
+    public static void updateBandProfile(int id, String name, String bio, String email, String phone, int krajId) {
+        String sql = "SELECT update_band_profile(?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.setString(2, name);
+            stmt.setString(3, bio);
+            stmt.setString(4, email);
+            stmt.setString(5, phone);
+            stmt.setInt(6, krajId);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static List<byte[]> loadImages(int bandId) {

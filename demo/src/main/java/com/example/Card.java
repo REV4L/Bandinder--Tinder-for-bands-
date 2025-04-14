@@ -32,6 +32,10 @@ public class Card {
     private List<Image> images;
     private int currentImageIndex = 0;
 
+    private Boolean isHeld() {
+        return Math.abs(card.getTranslateX()) > 5;
+    }
+
     public Card(Region r) {
         this.card = createCard(r);
         setUpMouseEvents();
@@ -121,6 +125,7 @@ public class Card {
         bio = new Label("Instrument");
         genre = new Label("Genre");
         swipeIndicator = new Label();
+        swipeIndicator.getStyleClass().add("swipeIndicator");
         swipeIndicator.setStyle(
                 "-fx-font-size: 48; -fx-font-weight: bold; -fx-text-fill: white; -fx-opacity: 0; -fx-font-family: 'Comic Sans MS';");
 
@@ -153,7 +158,7 @@ public class Card {
         vb.prefWidthProperty().bind(cardWidth.subtract(padding * 2));
 
         card.setOnMouseClicked(e -> {
-            if (images == null || images.size() <= 1)
+            if (isHeld() || images == null || images.size() <= 1)
                 return;
             if (e.getX() > card.getWidth() / 2)
                 nextImage();
@@ -202,35 +207,60 @@ public class Card {
 
     private void tick() {
         card.setRotate(getAngle());
+
+        Color neutralColor = Color.rgb(185, 185, 185);
+
         double x = card.getTranslateX();
+        double t = Math.min(Math.abs(x) / 150.0, 1.0); // interpolation factor [0..1]
+
+        // double x = card.getTranslateX();
         double opacity = Math.max(Math.abs(x) / 150.0, 0.01);
 
-        double radius = 10;
-        double spread = 100;
+        Color targetColor = neutralColor;
 
         if (x > 0) {
+            // Lerp from white to green
+            targetColor = interpolateColor(neutralColor, Color.rgb(93, 255, 107), t);
             swipeIndicator.setText("YES");
-            swipeIndicator.setStyle(
-                    "-fx-text-fill: rgba(93, 255, 107,1); -fx-font-size: 48; -fx-font-weight: bold; -fx-opacity: "
-                            + opacity + "; -fx-font-family: 'Comic Sans MS';");
             StackPane.setAlignment(swipeIndicator, Pos.TOP_LEFT);
             StackPane.setMargin(swipeIndicator, new Insets(20, 0, 0, 30));
-            card.setStyle("-fx-background-color: transparent; -fx-effect: dropshadow(one-pass-box, rgba(93, 255, 107,"
-                    + opacity + "), " + radius + ", " + spread + ", 0, 0);");
         } else if (x < 0) {
+            // Lerp from white to red
+            targetColor = interpolateColor(neutralColor, Color.rgb(255, 67, 67), t);
             swipeIndicator.setText("NO");
-            swipeIndicator.setStyle(
-                    "-fx-text-fill: rgba(255, 67, 67, 1); -fx-font-size: 48; -fx-font-weight: bold; -fx-opacity: "
-                            + opacity + "; -fx-font-family: 'Comic Sans MS';");
             StackPane.setAlignment(swipeIndicator, Pos.TOP_RIGHT);
             StackPane.setMargin(swipeIndicator, new Insets(20, 30, 0, 0));
-            card.setStyle("-fx-background-color: transparent; -fx-effect: dropshadow(one-pass-box, rgba(255, 67, 67,"
-                    + opacity + "), " + radius + ", " + spread + ", 0, 0);");
         } else {
             swipeIndicator.setStyle("-fx-opacity: 0;");
-            card.setStyle(
-                    "-fx-background-color: transparent; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.2, 0, 0);");
+            card.setStyle("");
+            // return;
         }
+
+        String rgba = String.format("rgba(%d, %d, %d, %d)",
+                (int) (targetColor.getRed() * 255),
+                (int) (targetColor.getGreen() * 255),
+                (int) (targetColor.getBlue() * 255),
+                1);
+
+        String rgbatxt = String.format("rgba(%d, %d, %d, %.2f)",
+                (int) (targetColor.getRed() * 255),
+                (int) (targetColor.getGreen() * 255),
+                (int) (targetColor.getBlue() * 255),
+                opacity);
+
+        swipeIndicator.setStyle(
+                "-fx-font-size: 48; -fx-font-weight: bold; -fx-opacity: 1; -fx-text-fill: " + rgbatxt
+                        + "; -fx-font-family: 'Comic Sans MS';");
+
+        card.setStyle("-fx-background-color: transparent; -fx-effect: dropshadow(one-pass-box, " + rgba
+                + ", 10, 100, 0, 0)");
+    }
+
+    private Color interpolateColor(Color start, Color end, double t) {
+        double r = start.getRed() + (end.getRed() - start.getRed()) * t;
+        double g = start.getGreen() + (end.getGreen() - start.getGreen()) * t;
+        double b = start.getBlue() + (end.getBlue() - start.getBlue()) * t;
+        return new Color(r, g, b, 1.0);
     }
 
     private void setUpMouseEvents() {
@@ -249,6 +279,11 @@ public class Card {
 
     private void released(MouseEvent event) {
         handleSwipe(card);
+
+        // var dif = dragStartX - event.getSceneX();
+
+        // if(Math.abs(dif) < 2)
+
         tick();
     }
 
@@ -257,11 +292,22 @@ public class Card {
 
         if (card.getTranslateX() > threshold) {
             animateCard(card, 2000);
+            accepted();
         } else if (card.getTranslateX() < -threshold) {
             animateCard(card, -2000);
+            rejected();
         } else {
             animateCard(card, 0);
         }
+    }
+
+    private void accepted() {
+        System.out.println("accepted");
+    }
+
+    private void rejected() {
+        System.out.println("rejected");
+
     }
 
     private void animateCard(Node card, double targetX) {

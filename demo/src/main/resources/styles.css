@@ -50,11 +50,19 @@
     /* -fx-background-color: #4a4a4a; */
     -fx-fill: #181818;
     -fx-background-radius: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.2, 0, 0);
+    /* -fx-effect: dropshadow(gaussian, rgba(255, 0, 0, 0.5), 30, 0.2, 0, 0); */
+
+    -fx-effect: dropshadow(one-pass-box, rgb(255, 255, 255), 10, 100, 0, 0);
 }
 
 .cname {
     -fx-font-size: 30;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.2, 0, 0);
+}
+
+.swipeIndicator {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0.8, 0, 0);
+
 }
 
 /* .root {

@@ -17,9 +17,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -132,6 +134,7 @@ public class Bandinder extends Application {
                     authStack.setVisible(false); // Hide auth UI
                     navbar.setVisible(true);
 
+                    System.out.println("loggedInId:" + Database.bandId);
                     profilePage.getChildren().setAll(buildProfilePage());
                     swipePage.setVisible(true);
                     switchPage(swipePage); // Go to app
@@ -263,34 +266,24 @@ public class Bandinder extends Application {
 
     private Pane buildProfilePage() {
         StackPane root = new StackPane();
-        // root.getStyleClass().addAll("bg", "page");
-        // root.getStyleClass().add("page");
-
         VBox content = new VBox(20);
         content.setPadding(new Insets(30));
         content.setAlignment(Pos.TOP_CENTER);
-        // content.getStyleClass().add("page");
 
         Label heading = new Label("Edit Profile");
         heading.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
-        FlowPane flow = new FlowPane();
-        flow.setHgap(20);
-        flow.setVgap(20);
+        FlowPane flow = new FlowPane(20, 20);
         flow.setAlignment(Pos.CENTER);
         flow.getStyleClass().add("flow-pane");
 
         List<byte[]> existingImages = Database.loadImages(Database.bandId);
-
         for (int i = 0; i < 6; i++) {
             int imageIndex = i;
-
-            ImageView imageView;
-            if (existingImages.get(i) != null) {
-                imageView = new ImageView(new Image(new ByteArrayInputStream(existingImages.get(i))));
-            } else {
-                imageView = new ImageView(new Image(getClass().getResourceAsStream("/blank.png")));
-            }
+            ImageView imageView = new ImageView(
+                    existingImages.get(i) != null
+                            ? new Image(new ByteArrayInputStream(existingImages.get(i)))
+                            : new Image(getClass().getResourceAsStream("/blank.png")));
 
             imageView.setFitWidth(100);
             imageView.setFitHeight(140);
@@ -302,32 +295,29 @@ public class Bandinder extends Application {
             clip.setArcHeight(20);
             imageView.setClip(clip);
 
-            StackPane imageFrame = new StackPane();
-            imageFrame.getStyleClass().add("image-frame");
-
+            StackPane imageFrame = new StackPane(imageView);
             Button removeBtn = new Button("✕");
             removeBtn.getStyleClass().add("button");
-            removeBtn.getStyleClass().remove("remove-button");
+            StackPane.setAlignment(removeBtn, Pos.TOP_RIGHT);
+
             removeBtn.setOnAction(e -> {
                 Database.deleteImage(Database.bandId, imageIndex);
                 imageView.setImage(new Image(getClass().getResourceAsStream("/blank.png")));
                 e.consume();
             });
 
-            StackPane.setAlignment(removeBtn, Pos.TOP_RIGHT);
-            imageFrame.getChildren().addAll(imageView, removeBtn);
-
+            imageFrame.getChildren().add(removeBtn);
             imageFrame.setOnMouseClicked(e -> {
                 if (e.getTarget() instanceof Button)
                     return;
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Select Profile Image");
-                File selectedFile = fileChooser.showOpenDialog(root.getScene().getWindow());
-                if (selectedFile != null) {
+                File file = fileChooser.showOpenDialog(root.getScene().getWindow());
+                if (file != null) {
                     try {
-                        byte[] imageBytes = Files.readAllBytes(selectedFile.toPath());
-                        Database.saveImage(imageBytes, Database.bandId, imageIndex);
-                        imageView.setImage(new Image(new FileInputStream(selectedFile)));
+                        byte[] data = Files.readAllBytes(file.toPath());
+                        Database.saveImage(data, Database.bandId, imageIndex);
+                        imageView.setImage(new Image(new FileInputStream(file)));
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -337,7 +327,49 @@ public class Bandinder extends Application {
             flow.getChildren().add(imageFrame);
         }
 
-        content.getChildren().addAll(heading, flow);
+        // Load current band info
+        Band band = Database.band;
+
+        if (band != null) {
+
+            TextField nameField = new TextField(band.name);
+            nameField.setPromptText("Band Name");
+
+            TextArea bioField = new TextArea(band.bio);
+            bioField.setPromptText("Bio");
+            bioField.setWrapText(true);
+            bioField.setPrefRowCount(4);
+
+            TextField emailField = new TextField(band.email);
+            emailField.setPromptText("Email");
+
+            TextField phoneField = new TextField(band.phone);
+            phoneField.setPromptText("Phone");
+
+            ComboBox<Kraj> krajCombo = new ComboBox<>(Database.getKraji());
+            krajCombo.setPromptText("Select Location");
+            krajCombo.getSelectionModel().select(
+                    Database.getKraji().stream().filter(k -> k.id == band.krajId).findFirst().orElse(null));
+
+            Button saveBtn = new Button("Save Changes");
+            saveBtn.setOnAction(e -> {
+                Kraj selectedKraj = krajCombo.getValue();
+                if (selectedKraj != null) {
+                    Database.updateBandProfile(
+                            Database.bandId,
+                            nameField.getText(),
+                            bioField.getText(),
+                            emailField.getText(),
+                            phoneField.getText(),
+                            selectedKraj.id);
+                }
+            });
+
+            VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, saveBtn);
+            form.setAlignment(Pos.CENTER);
+
+            content.getChildren().addAll(heading, flow, form);
+        }
 
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
