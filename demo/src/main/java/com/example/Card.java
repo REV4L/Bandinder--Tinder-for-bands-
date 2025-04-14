@@ -41,7 +41,26 @@ public class Card {
         t.play();
 
         appearAnim();
-        nextSuggestion();
+
+        new Thread(() -> {
+            try {
+
+                while (true) {
+                    Thread.sleep(100); // wait 100ms
+
+                    if (!Database.loggedIn())
+                        continue;
+
+                    javafx.application.Platform.runLater(() -> {
+                        nextSuggestion();
+                    });
+
+                    break;
+
+                }
+            } catch (Exception ex) {
+            }
+        }).start();
     }
 
     public StackPane getCard() {

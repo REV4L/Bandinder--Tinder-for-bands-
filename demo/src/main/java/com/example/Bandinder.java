@@ -126,6 +126,7 @@ public class Bandinder extends Application {
 
         Button loginBtn = new Button("Log In");
         loginBtn.setOnAction(e -> {
+            System.out.print("got" + emailField.getText() + passField.getText());
             Database.loginBand(emailField.getText(), passField.getText(), c -> {
                 if (c) {
                     authStack.setVisible(false); // Hide auth UI
@@ -145,6 +146,22 @@ public class Bandinder extends Application {
         toRegister.setOnAction(e -> slideTo(loginPane, registerPane, authStack, false));
 
         login.getChildren().addAll(title, emailField, passField, loginBtn, toRegister);
+
+        // new Thread(() -> {
+        // try {
+        // Thread.sleep(1000); // wait 100ms
+
+        // javafx.application.Platform.runLater(() -> {
+        // emailField.setText("qwe");
+        // passField.setText("qwe");
+        // emailField.setText("qqq");
+        // passField.setText("qqq");
+        // loginBtn.fire();
+        // });
+        // } catch (Exception ex) {
+        // }
+        // }).start();
+
         return login;
     }
 
