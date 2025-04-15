@@ -8,11 +8,12 @@ RETURNS TABLE (
     bio TEXT,
     email VARCHAR,
     phone VARCHAR,
-    dt TIMESTAMP
+    dt TIMESTAMP,
+    kraj_id INT
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT b.id, b.name, b.bio, b.email, b.phone, b.dt
+    SELECT b.id, b.name, b.bio, b.email, b.phone, b.dt, b.kraj_id
     FROM bands b
     WHERE b.id = p_band_id;
 END;
@@ -139,7 +140,295 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS get_best_band_match(p_band_id INT, min_shared_tags INT);
 
+CREATE OR REPLACE FUNCTION get_best_band_match(p_band_id INT, min_shared_tags INT)
+RETURNS TABLE (
+    suggestion_id INT,
+    band_id INT,
+    band_name VARCHAR,
+    shared_tags_count INT,
+    last_suggested TIMESTAMP
+) AS $$
+DECLARE
+    matched_id INT;
+    existing_id INT;
+BEGIN
+    SELECT b.id
+    INTO matched_id
+    FROM bands b
+    LEFT JOIN (
+        SELECT bt2.band_id, COUNT(*) AS shared_tags
+        FROM bands_tags bt1
+        JOIN bands_tags bt2 ON bt1.tags_id = bt2.tags_id
+        WHERE bt1.band_id = p_band_id AND bt2.band_id != p_band_id
+        GROUP BY bt2.band_id
+    ) shared ON shared.band_id = b.id
+    WHERE b.id != p_band_id
+    AND (shared.shared_tags IS NULL OR shared.shared_tags >= min_shared_tags)
+    ORDER BY shared.shared_tags DESC NULLS LAST
+    LIMIT 1;
+
+    IF matched_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- Try to find existing suggestion
+    SELECT id INTO existing_id
+    FROM suggestions
+    WHERE (band1_id = p_band_id AND band2_id = matched_id)
+       OR (band2_id = p_band_id AND band1_id = matched_id)
+    LIMIT 1;
+
+    IF existing_id IS NULL THEN
+        INSERT INTO suggestions (dt, band1_id, band2_id)
+        VALUES (NOW(), p_band_id, matched_id)
+        RETURNING id INTO existing_id;
+    END IF;
+
+    RETURN QUERY
+    SELECT existing_id, b.id, b.name, COALESCE(shared.shared_tags, 0)::INT, MAX(s.dt)
+    FROM bands b
+    LEFT JOIN (
+        SELECT bt2.band_id, COUNT(*) AS shared_tags
+        FROM bands_tags bt1
+        JOIN bands_tags bt2 ON bt1.tags_id = bt2.tags_id
+        WHERE bt1.band_id = p_band_id AND bt2.band_id != p_band_id
+        GROUP BY bt2.band_id
+    ) shared ON shared.band_id = b.id
+    LEFT JOIN suggestions s ON (
+        (s.band1_id = p_band_id AND s.band2_id = b.id)
+        OR (s.band2_id = p_band_id AND s.band1_id = b.id)
+    )
+    WHERE b.id = matched_id
+    GROUP BY b.id, b.name, shared.shared_tags;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_best_band_match(p_band_id INT, min_shared_tags INT)
+RETURNS TABLE (
+    suggestion_id INT,
+    band_id INT,
+    band_name VARCHAR,
+    shared_tags_count INT,
+    last_suggested TIMESTAMP
+) AS $$
+DECLARE
+    matched_id INT;
+    existing_id INT;
+BEGIN
+    -- Find best match NOT yet accepted/rejected
+    SELECT b.id
+    INTO matched_id
+    FROM bands b
+    LEFT JOIN (
+        SELECT bt2.band_id, COUNT(*) AS shared_tags
+        FROM bands_tags bt1
+        JOIN bands_tags bt2 ON bt1.tags_id = bt2.tags_id
+        WHERE bt1.band_id = p_band_id AND bt2.band_id != p_band_id
+        GROUP BY bt2.band_id
+    ) shared ON shared.band_id = b.id
+    LEFT JOIN suggestions s ON (
+        (s.band1_id = p_band_id AND s.band2_id = b.id)
+        OR (s.band2_id = p_band_id AND s.band1_id = b.id)
+    )
+    WHERE b.id != p_band_id
+      AND (shared.shared_tags IS NULL OR shared.shared_tags >= min_shared_tags)
+      AND (
+        s.id IS NULL -- no suggestion yet
+        OR (p_band_id = s.band1_id AND s.accepted1 IS DISTINCT FROM 1)
+        OR (p_band_id = s.band2_id AND s.accepted2 IS DISTINCT FROM 1)
+      )
+    ORDER BY shared.shared_tags DESC NULLS LAST, s.dt NULLS FIRST
+    LIMIT 1;
+
+    IF matched_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- Try to find existing suggestion
+    SELECT id INTO existing_id
+    FROM suggestions
+    WHERE (band1_id = p_band_id AND band2_id = matched_id)
+       OR (band2_id = p_band_id AND band1_id = matched_id)
+    LIMIT 1;
+
+    IF existing_id IS NULL THEN
+        INSERT INTO suggestions (dt, band1_id, band2_id)
+        VALUES (NOW(), p_band_id, matched_id)
+        RETURNING id INTO existing_id;
+    END IF;
+
+    RETURN QUERY
+    SELECT existing_id, b.id, b.name, COALESCE(shared.shared_tags, 0)::INT, MAX(s.dt)
+    FROM bands b
+    LEFT JOIN (
+        SELECT bt2.band_id, COUNT(*) AS shared_tags
+        FROM bands_tags bt1
+        JOIN bands_tags bt2 ON bt1.tags_id = bt2.tags_id
+        WHERE bt1.band_id = p_band_id AND bt2.band_id != p_band_id
+        GROUP BY bt2.band_id
+    ) shared ON shared.band_id = b.id
+    LEFT JOIN suggestions s ON (
+        (s.band1_id = p_band_id AND s.band2_id = b.id)
+        OR (s.band2_id = p_band_id AND s.band1_id = b.id)
+    )
+    WHERE b.id = matched_id
+    GROUP BY b.id, b.name, shared.shared_tags;
+END;
+$$ LANGUAGE plpgsql;
+
+-- matched
+CREATE OR REPLACE FUNCTION get_confirmed_matches(p_band_id INT)
+RETURNS TABLE (
+    band_id INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        CASE
+            WHEN s.band1_id = p_band_id THEN s.band2_id
+            ELSE s.band1_id
+        END AS band_id
+    FROM suggestions s
+    WHERE (s.band1_id = p_band_id OR s.band2_id = p_band_id)
+      AND s.accepted1 = 1 AND s.accepted2 = 1
+      AND s.band1_id != s.band2_id;
+    --RETURN QUERY
+    --SELECT band1_id FROM suggestions WHERE band1_id = p_band_id OR band2_id = p_band_id;
+--
+    --RETURN QUERY
+    --(SELECT band1_id FROM suggestions WHERE accepted1 = 1 AND accepted2 = 1 AND band2_id = p_band_id) UNION (SELECT band2_id FROM suggestions WHERE accepted1 = 1 AND accepted2 = 1 AND band1_id = p_band_id);
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+--CREATE OR REPLACE FUNCTION get_best_band_match(p_band_id INT, min_shared_tags INT)
+--RETURNS TABLE (
+--    suggestion_id INT,
+--    band_id INT,
+--    band_name VARCHAR,
+--    shared_tags_count INT,
+--    last_suggested TIMESTAMP
+--) AS $$
+--DECLARE
+--    matched_id INT;
+--    existing_id INT;
+--BEGIN
+--    -- Find best match NOT yet accepted/rejected
+--    SELECT b.id
+--    INTO matched_id
+--    FROM bands b
+--    LEFT JOIN (
+--        SELECT bt2.band_id, COUNT(*) AS shared_tags
+--        FROM bands_tags bt1
+--        JOIN bands_tags bt2 ON bt1.tags_id = bt2.tags_id
+--        WHERE bt1.band_id = p_band_id AND bt2.band_id != p_band_id
+--        GROUP BY bt2.band_id
+--    ) shared ON shared.band_id = b.id
+--    LEFT JOIN suggestions s ON (
+--        (s.band1_id = p_band_id AND s.band2_id = b.id)
+--        OR (s.band2_id = p_band_id AND s.band1_id = b.id)
+--    )
+--    WHERE b.id != p_band_id
+--      AND (shared.shared_tags IS NULL OR shared.shared_tags >= min_shared_tags)
+--      AND (
+--    s.id IS NULL
+--    OR NOT (s.accepted1 = 1 AND s.accepted2 = 1)
+--)
+--
+--    ORDER BY shared.shared_tags DESC NULLS LAST, s.dt NULLS FIRST
+--    LIMIT 1;
+--
+--    IF matched_id IS NULL THEN
+--        RETURN;
+--    END IF;
+--
+--    -- Try to find existing suggestion
+--    SELECT id INTO existing_id
+--    FROM suggestions
+--    WHERE (band1_id = p_band_id AND band2_id = matched_id)
+--       OR (band2_id = p_band_id AND band1_id = matched_id)
+--    LIMIT 1;
+--
+--    IF existing_id IS NULL THEN
+--        INSERT INTO suggestions (dt, band1_id, band2_id)
+--        VALUES (NOW(), p_band_id, matched_id)
+--        RETURNING id INTO existing_id;
+--    END IF;
+--
+--    RETURN QUERY
+--    SELECT existing_id, b.id, b.name, COALESCE(shared.shared_tags, 0)::INT, MAX(s.dt)
+--    FROM bands b
+--    LEFT JOIN (
+--        SELECT bt2.band_id, COUNT(*) AS shared_tags
+--        FROM bands_tags bt1
+--        JOIN bands_tags bt2 ON bt1.tags_id = bt2.tags_id
+--        WHERE bt1.band_id = p_band_id AND bt2.band_id != p_band_id
+--        GROUP BY bt2.band_id
+--    ) shared ON shared.band_id = b.id
+--    LEFT JOIN suggestions s ON (
+--        (s.band1_id = p_band_id AND s.band2_id = b.id)
+--        OR (s.band2_id = p_band_id AND s.band1_id = b.id)
+--    )
+--    WHERE b.id = matched_id
+--    GROUP BY b.id, b.name, shared.shared_tags;
+--END;
+--$$ LANGUAGE plpgsql;
+
+
+-- accept suggestion match
+
+CREATE OR REPLACE FUNCTION accept_suggestion(p_suggestion_id INT, p_band_id INT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE suggestions
+    SET
+        accepted1 = CASE WHEN band1_id = p_band_id THEN 1 ELSE accepted1 END,
+        accepted2 = CASE WHEN band2_id = p_band_id THEN 1 ELSE accepted2 END
+    WHERE id = p_suggestion_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+-- update band profile
+CREATE OR REPLACE FUNCTION update_band_profile(
+    p_id INT,
+    p_name VARCHAR,
+    p_bio TEXT,
+    p_email VARCHAR,
+    p_phone VARCHAR,
+    p_kraj_id INT
+)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE bands
+    SET name = p_name,
+        bio = p_bio,
+        email = p_email,
+        phone = p_phone,
+        kraj_id = p_kraj_id
+    WHERE id = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION getKraji()
+RETURNS TABLE (
+    id INT,
+    ime VARCHAR,
+    postna VARCHAR,
+    vel_uporabnik VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT k.id, k.ime, k.postna, k.vel_uporabnik
+    FROM kraji k
+    ORDER BY k.ime;
+END;
+$$ LANGUAGE plpgsql;
 
 
 

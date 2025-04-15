@@ -23,6 +23,8 @@ public class Database {
     public static int bandId = -1;
     public static Band band;
 
+    public static int currentSuggestionId = -1;
+
     public static boolean loggedIn() {
         return bandId >= 0;
     }
@@ -112,19 +114,53 @@ public class Database {
         return images;
     }
 
-    public static int getBestBandMatch(int bandId, int minSharedTags) {
+    public static int getBestBandMatch(int bandId, int minSharedTags) { // }, Consumer<Integer> callback) {
         String query = "SELECT * FROM get_best_band_match(?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, bandId);
             stmt.setInt(2, minSharedTags);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
+                currentSuggestionId = rs.getInt("suggestion_id");
+                // callback.accept(rs.getInt("suggestion_id"));
                 return rs.getInt("band_id");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // return -1 if no match found
+        return -1;
+    }
+
+    public static List<Band> getConfirmedMatches(int bandId) {
+        List<Band> matches = new ArrayList<>();
+        String sql = "SELECT * FROM get_confirmed_matches(?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bandId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                int id = rs.getInt("band_id");
+                // System.out.println("m");
+                Band b = getBandInfo(id);
+                if (b != null)
+                    matches.add(b);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(matches);
+        return matches;
+    }
+
+    public static void acceptSuggestion(int suggestionId) {
+        String sql = "SELECT accept_suggestion(?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, suggestionId);
+            stmt.setInt(2, bandId);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void updateBandProfile(int id, String name, String bio, String email, String phone, int krajId) {

@@ -18,6 +18,7 @@ import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
 
 import java.io.ByteArrayInputStream;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class Card {
@@ -74,7 +75,30 @@ public class Card {
     public void nextSuggestion() {
         new Thread(() -> {
             card.setTranslateY(1000);
-            int nextId = Database.getBestBandMatch(Database.bandId, 1);
+
+            int nextId = Database.getBestBandMatch(Database.bandId, 1); // , c -> {
+
+            // new Thread(() -> {
+            // try {
+            // Thread.sleep(1000);
+            // nextSuggestion();
+            // return;
+            // } catch (Exception e) {
+            // }
+            // }).start();
+            // currentSuggestionId = c;
+            // });
+            if (nextId < 0) {
+
+                Band band = new Band(-1, "You swiped all the bands", "Wait for their response", "", "",
+                        new Timestamp(nextId), 0);
+
+                javafx.application.Platform.runLater(() -> {
+                    setBand(band);
+                    setImages(null);
+                });
+                // return;
+            }
             System.out.println(nextId);
             if (nextId >= 0) {
                 Band band = Database.getBandInfo(nextId);
@@ -306,6 +330,9 @@ public class Card {
 
     private void accepted() {
         System.out.println("accepted");
+
+        if (Database.currentSuggestionId >= 0)
+            Database.acceptSuggestion(Database.currentSuggestionId);
     }
 
     private void rejected() {

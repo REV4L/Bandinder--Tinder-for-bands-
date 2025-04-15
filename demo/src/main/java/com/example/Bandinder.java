@@ -90,6 +90,23 @@ public class Bandinder extends Application {
         primaryStage.setTitle("Bandinder");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        new Thread(() -> {
+            try {
+                while (true) {
+                    Thread.sleep(1000); // wait 100ms
+
+                    javafx.application.Platform.runLater(() -> {
+                        tick();
+                    });
+                }
+            } catch (Exception ex) {
+            }
+        }).start();
+    }
+
+    private void tick() {
+        matchPage.getChildren().setAll(buildMatchPage());
     }
 
     private StackPane buildAuthStack() {
@@ -226,11 +243,17 @@ public class Bandinder extends Application {
         matchList.setStyle("-fx-background-color: transparent;");
         matchList.setAlignment(Pos.TOP_CENTER); // align items neatly
 
-        for (int i = 0; i < 50; i++) {
-            matchList.getChildren().add(buildMatchItem(
-                    "Band #" + (i + 1),
-                    "Rock • Guitar",
-                    "Contact: band" + (i + 1) + "@music.com"));
+        // for (int i = 0; i < 50; i++) {
+        // matchList.getChildren().add(buildMatchItem(
+        // "Band #" + (i + 1),
+        // "Rock • Guitar",
+        // "Contact: band" + (i + 1) + "@music.com"));
+        // }
+
+        List<Band> matches = Database.getConfirmedMatches(Database.bandId);
+        matchList.getChildren().clear();
+        for (Band b : matches) {
+            matchList.getChildren().add(buildMatchItem(b));
         }
 
         scrollPane.setContent(matchList);
@@ -239,20 +262,17 @@ public class Bandinder extends Application {
         return content;
     }
 
-    private HBox buildMatchItem(String title, String subtitle, String contact) {
+    private HBox buildMatchItem(Band band) {
         VBox infoBox = new VBox(5);
         infoBox.setAlignment(Pos.CENTER_LEFT);
 
-        Label name = new Label(title);
+        Label name = new Label(band.name);
         name.getStyleClass().add("userlabel");
 
-        Label instrument = new Label(subtitle);
-        instrument.getStyleClass().add("label");
+        Label bio = new Label(band.bio);
+        bio.getStyleClass().add("label");
 
-        Label email = new Label(contact);
-        email.getStyleClass().add("label");
-
-        infoBox.getChildren().addAll(name, instrument, email);
+        infoBox.getChildren().addAll(name, bio);
 
         HBox item = new HBox(10);
         item.setPadding(new Insets(10));
@@ -260,9 +280,49 @@ public class Bandinder extends Application {
         item.getStyleClass().add("group");
 
         item.getChildren().addAll(infoBox);
+        item.setOnMouseClicked(e -> showContactPopup(band));
 
         return item;
     }
+
+    private void showContactPopup(Band band) {
+        VBox content = new VBox(10,
+                new Label("Email: " + band.email),
+                new Label("Phone: " + band.phone));
+        content.setPadding(new Insets(15));
+        content.setAlignment(Pos.CENTER);
+
+        Scene popupScene = new Scene(content, 300, 150);
+        Stage popup = new Stage();
+        popup.setScene(popupScene);
+        popup.setTitle("Contact Info for " + band.name);
+        popup.show();
+    }
+
+    // private HBox buildMatchItem(String title, String subtitle, String contact) {
+    // VBox infoBox = new VBox(5);
+    // infoBox.setAlignment(Pos.CENTER_LEFT);
+
+    // Label name = new Label(title);
+    // name.getStyleClass().add("userlabel");
+
+    // Label instrument = new Label(subtitle);
+    // instrument.getStyleClass().add("label");
+
+    // Label email = new Label(contact);
+    // email.getStyleClass().add("label");
+
+    // infoBox.getChildren().addAll(name, instrument, email);
+
+    // HBox item = new HBox(10);
+    // item.setPadding(new Insets(10));
+    // item.setAlignment(Pos.CENTER_LEFT);
+    // item.getStyleClass().add("group");
+
+    // item.getChildren().addAll(infoBox);
+
+    // return item;
+    // }
 
     private Pane buildProfilePage() {
         StackPane root = new StackPane();
