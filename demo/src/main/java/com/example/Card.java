@@ -85,6 +85,7 @@ public class Card {
                 });
             }
 
+            card.setTranslateX(0);
             appearAnim();
         }).start();
     }
@@ -254,6 +255,8 @@ public class Card {
 
         card.setStyle("-fx-background-color: transparent; -fx-effect: dropshadow(one-pass-box, " + rgba
                 + ", 10, 100, 0, 0)");
+
+        card.setOpacity(x < 1000 ? 1 : 0);
     }
 
     private Color interpolateColor(Color start, Color end, double t) {
@@ -316,7 +319,7 @@ public class Card {
 
         transition.setOnFinished(e -> {
             if (Math.abs(targetX) > 300) {
-                card.setTranslateX(0);
+                card.setTranslateX(targetX);
                 tick();
                 // appearAnim();
                 nextSuggestion();
