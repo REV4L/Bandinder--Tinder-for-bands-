@@ -129,7 +129,7 @@ public class Card {
         tagRow.getChildren().setAll(
                 buildTagRow(
                         Database.bandId, Database.getOtherBandIdFromSuggestion(
-                                Database.bandId, Database.currentSuggestionId)));
+                                Database.currentSuggestionId, Database.bandId)));
     }
 
     public StackPane createCard(Region bindTo) {
@@ -226,7 +226,12 @@ public class Card {
             tagRow.getChildren().add(tagLabel);
         }
 
+        System.out.println("xxxxxxxxxxxxxxxxxx");
+        System.out.println(bandId);
         System.out.println(bandTags);
+        System.out.println(otherBandId); // je 0
+        System.out.println(otherBandTags);
+        System.out.println("xxxxxxxxxxxxxxxxxx");
 
         return tagRow;
     }

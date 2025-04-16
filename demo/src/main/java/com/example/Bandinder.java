@@ -462,7 +462,8 @@ public class Bandinder extends Application {
             Button saveBtn = new Button("Save Changes");
             saveBtn.setOnAction(e -> {
                 Kraj selectedKraj = krajCombo.getValue();
-                if (selectedKraj != null) {
+                int krajId = selectedKraj != null ? selectedKraj.id : 0;
+                if (true || selectedKraj != null) {
                     List<String> tags = new ArrayList<>();
                     for (Node n : tagPane.getChildren()) {
                         if (n instanceof Label) {
@@ -477,7 +478,7 @@ public class Bandinder extends Application {
                             bioField.getText(),
                             emailField.getText(),
                             phoneField.getText(),
-                            selectedKraj.id,
+                            krajId, // selectedKraj.id,
                             tags.toArray(new String[0]));
                 }
             });
