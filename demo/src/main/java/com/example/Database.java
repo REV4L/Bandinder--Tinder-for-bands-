@@ -152,6 +152,39 @@ public class Database {
         return matches;
     }
 
+    public static void updateBandProfileAndTags(int bandId, String name, String bio, String email, String phone,
+            int krajId, List<String> tags) {
+        String sql = "SELECT update_band_profile_and_tags(?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bandId);
+            stmt.setString(2, name);
+            stmt.setString(3, bio);
+            stmt.setString(4, email);
+            stmt.setString(5, phone);
+            stmt.setInt(6, krajId);
+            Array tagArray = conn.createArrayOf("text", tags.toArray());
+            stmt.setArray(7, tagArray);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> getBandTags(int bandId) {
+        List<String> tags = new ArrayList<>();
+        String sql = "SELECT t.name FROM tags t JOIN bands_tags bt ON bt.tags_id = t.id WHERE bt.band_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bandId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tags.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tags;
+    }
+
     public static void acceptSuggestion(int suggestionId) {
         String sql = "SELECT accept_suggestion(?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

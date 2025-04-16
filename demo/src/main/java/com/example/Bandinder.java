@@ -352,10 +352,8 @@ public class Bandinder extends Application {
         Label heading = new Label("Edit Profile");
         heading.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
-        FlowPane flow = new FlowPane(20, 20);
-        flow.setAlignment(Pos.CENTER);
-        flow.getStyleClass().add("flow-pane");
-
+        FlowPane imageGrid = new FlowPane(20, 20);
+        imageGrid.setAlignment(Pos.CENTER);
         List<byte[]> existingImages = Database.loadImages(Database.bandId);
         for (int i = 0; i < 6; i++) {
             int imageIndex = i;
@@ -376,22 +374,18 @@ public class Bandinder extends Application {
 
             StackPane imageFrame = new StackPane(imageView);
             Button removeBtn = new Button("✕");
-            removeBtn.getStyleClass().add("button");
             StackPane.setAlignment(removeBtn, Pos.TOP_RIGHT);
-
             removeBtn.setOnAction(e -> {
                 Database.deleteImage(Database.bandId, imageIndex);
                 imageView.setImage(new Image(getClass().getResourceAsStream("/blank.png")));
                 e.consume();
             });
-
             imageFrame.getChildren().add(removeBtn);
             imageFrame.setOnMouseClicked(e -> {
                 if (e.getTarget() instanceof Button)
                     return;
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Select Profile Image");
-                File file = fileChooser.showOpenDialog(root.getScene().getWindow());
+                FileChooser fc = new FileChooser();
+                File file = fc.showOpenDialog(root.getScene().getWindow());
                 if (file != null) {
                     try {
                         byte[] data = Files.readAllBytes(file.toPath());
@@ -403,60 +397,87 @@ public class Bandinder extends Application {
                 }
             });
 
-            flow.getChildren().add(imageFrame);
+            imageGrid.getChildren().add(imageFrame);
         }
 
-        // Load current band info
         Band band = Database.band;
+        TextField nameField = new TextField(band.name);
+        nameField.setPromptText("Band Name");
 
-        if (band != null) {
+        TextArea bioField = new TextArea(band.bio);
+        bioField.setPromptText("Bio");
+        bioField.setWrapText(true);
+        bioField.setPrefRowCount(4);
 
-            TextField nameField = new TextField(band.name);
-            nameField.setPromptText("Band Name");
+        TextField emailField = new TextField(band.email);
+        emailField.setPromptText("Email");
 
-            TextArea bioField = new TextArea(band.bio);
-            bioField.setPromptText("Bio");
-            bioField.setWrapText(true);
-            bioField.setPrefRowCount(4);
+        TextField phoneField = new TextField(band.phone);
+        phoneField.setPromptText("Phone");
 
-            TextField emailField = new TextField(band.email);
-            emailField.setPromptText("Email");
+        ComboBox<Kraj> krajCombo = new ComboBox<>(Database.getKraji());
+        krajCombo.setPromptText("Select Location");
+        krajCombo.getSelectionModel().select(
+                Database.getKraji().stream().filter(k -> k.id == band.krajId).findFirst().orElse(null));
 
-            TextField phoneField = new TextField(band.phone);
-            phoneField.setPromptText("Phone");
+        // Tags section
+        FlowPane tagsPane = new FlowPane(10, 10);
+        tagsPane.setPrefWrapLength(300);
+        tagsPane.setPadding(new Insets(10));
+        tagsPane.setAlignment(Pos.CENTER_LEFT);
 
-            ComboBox<Kraj> krajCombo = new ComboBox<>(Database.getKraji());
-            krajCombo.setPromptText("Select Location");
-            krajCombo.getSelectionModel().select(
-                    Database.getKraji().stream().filter(k -> k.id == band.krajId).findFirst().orElse(null));
-
-            Button saveBtn = new Button("Save Changes");
-            saveBtn.setOnAction(e -> {
-                Kraj selectedKraj = krajCombo.getValue();
-                if (selectedKraj != null) {
-                    Database.updateBandProfile(
-                            Database.bandId,
-                            nameField.getText(),
-                            bioField.getText(),
-                            emailField.getText(),
-                            phoneField.getText(),
-                            selectedKraj.id);
-                }
-            });
-
-            VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, saveBtn);
-            form.setAlignment(Pos.CENTER);
-
-            content.getChildren().addAll(heading, flow, form);
+        List<String> currentTags = Database.getBandTags(Database.bandId);
+        for (String tag : currentTags) {
+            tagsPane.getChildren().add(makeTagLabel(tag, tagsPane));
         }
+
+        TextField tagInput = new TextField();
+        tagInput.setPromptText("Add tag...");
+        tagInput.setOnAction(e -> {
+            String newTag = tagInput.getText().trim().toLowerCase().replaceAll("[^a-zA-Z0-9-]", "");
+            if (!newTag.isEmpty()) {
+                tagsPane.getChildren().add(makeTagLabel(newTag, tagsPane));
+                tagInput.clear();
+            }
+        });
+
+        Button saveBtn = new Button("Save Changes");
+        saveBtn.setOnAction(e -> {
+            Kraj selectedKraj = krajCombo.getValue();
+            if (selectedKraj != null) {
+                List<String> tagList = tagsPane.getChildren().stream()
+                        .filter(n -> n instanceof Label)
+                        .map(n -> ((Label) n).getText().substring(1)) // remove '#'
+                        .toList();
+
+                Database.updateBandProfileAndTags(
+                        Database.bandId,
+                        nameField.getText(),
+                        bioField.getText(),
+                        emailField.getText(),
+                        phoneField.getText(),
+                        selectedKraj.id,
+                        tagList);
+            }
+        });
+
+        VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, tagInput, tagsPane, saveBtn);
+        form.setAlignment(Pos.CENTER);
+
+        content.getChildren().addAll(heading, imageGrid, form);
 
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.getStyleClass().add("scroll-pane");
-
         root.getChildren().add(scrollPane);
         return root;
+    }
+
+    private Label makeTagLabel(String tag, Pane container) {
+        Label lbl = new Label("#" + tag);
+        lbl.setStyle("-fx-background-color: #ddd; -fx-padding: 5 10; -fx-background-radius: 12;");
+        lbl.setOnMouseClicked(e -> container.getChildren().remove(lbl));
+        return lbl;
     }
 
     private HBox buildNavbar() {
