@@ -286,17 +286,36 @@ public class Bandinder extends Application {
     }
 
     private void showContactPopup(Band band) {
-        VBox content = new VBox(10,
-                new Label("Email: " + band.email),
-                new Label("Phone: " + band.phone));
-        content.setPadding(new Insets(15));
-        content.setAlignment(Pos.CENTER);
+        // Semi-transparent background overlay
+        StackPane overlay = new StackPane();
+        overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5);");
 
-        Scene popupScene = new Scene(content, 300, 150);
-        Stage popup = new Stage();
-        popup.setScene(popupScene);
-        popup.setTitle("Contact Info for " + band.name);
-        popup.show();
+        VBox popupContent = new VBox(10,
+                new Label("Email: " + band.email),
+                new Label("Phone: " + band.phone),
+                new Button("Close"));
+        popupContent.setPadding(new Insets(20));
+        popupContent.setAlignment(Pos.CENTER);
+        popupContent.getStyleClass().add("page");
+
+        Button closeBtn = (Button) popupContent.getChildren().get(2);
+        closeBtn.setOnAction(e -> root.getChildren().remove(overlay));
+
+        overlay.getChildren().add(popupContent);
+        StackPane.setAlignment(popupContent, Pos.CENTER);
+
+        // Add overlay to the root stack
+        root.getChildren().add(overlay);
+
+        TranslateTransition transition = new TranslateTransition(Duration.millis(300), popupContent);
+        transition.setFromY(-1000);
+        transition.setToY(0);
+
+        transition.setOnFinished(e -> {
+
+        });
+
+        transition.play();
     }
 
     // private HBox buildMatchItem(String title, String subtitle, String contact) {
