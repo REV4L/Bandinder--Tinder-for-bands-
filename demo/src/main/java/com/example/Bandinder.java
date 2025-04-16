@@ -13,8 +13,11 @@ import java.sql.SQLException;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -406,11 +409,9 @@ public class Bandinder extends Application {
             flow.getChildren().add(imageFrame);
         }
 
-        // Load current band info
         Band band = Database.band;
 
         if (band != null) {
-
             TextField nameField = new TextField(band.name);
             nameField.setPromptText("Band Name");
 
@@ -430,21 +431,57 @@ public class Bandinder extends Application {
             krajCombo.getSelectionModel().select(
                     Database.getKraji().stream().filter(k -> k.id == band.krajId).findFirst().orElse(null));
 
+            FlowPane tagPane = new FlowPane(8, 8);
+            tagPane.setAlignment(Pos.CENTER);
+            ObservableList<String> currentTags = FXCollections
+                    .observableArrayList(Database.getTagsForBand(Database.bandId));
+            for (String tag : currentTags) {
+                Label tagLabel = new Label("#" + tag);
+                tagLabel.setStyle(
+                        "-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 5 10 5 10; -fx-background-radius: 15;");
+                tagLabel.setOnMouseClicked(e -> tagPane.getChildren().remove(tagLabel));
+                tagPane.getChildren().add(tagLabel);
+            }
+
+            TextField tagInput = new TextField();
+            tagInput.setPromptText("Add tag...");
+            tagInput.setOnAction(e -> {
+                String text = tagInput.getText().trim().toLowerCase();
+                if (!text.isEmpty()) {
+                    Label tagLabel = new Label("#" + text);
+                    tagLabel.setStyle(
+                            "-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 5 10 5 10; -fx-background-radius: 15;");
+                    tagLabel.setOnMouseClicked(ev -> tagPane.getChildren().remove(tagLabel));
+                    tagPane.getChildren().add(tagLabel);
+                    tagInput.clear();
+                }
+            });
+
             Button saveBtn = new Button("Save Changes");
             saveBtn.setOnAction(e -> {
                 Kraj selectedKraj = krajCombo.getValue();
                 if (selectedKraj != null) {
-                    Database.updateBandProfile(
+                    List<String> tags = new ArrayList<>();
+                    for (Node n : tagPane.getChildren()) {
+                        if (n instanceof Label) {
+                            String text = ((Label) n).getText();
+                            if (text.startsWith("#"))
+                                tags.add(text.substring(1));
+                        }
+                    }
+                    Database.updateBandProfileAndTags(
                             Database.bandId,
                             nameField.getText(),
                             bioField.getText(),
                             emailField.getText(),
                             phoneField.getText(),
-                            selectedKraj.id);
+                            selectedKraj.id,
+                            tags.toArray(new String[0]));
                 }
             });
 
-            VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, saveBtn);
+            VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, tagInput, tagPane,
+                    saveBtn);
             form.setAlignment(Pos.CENTER);
 
             content.getChildren().addAll(heading, flow, form);
@@ -457,6 +494,13 @@ public class Bandinder extends Application {
 
         root.getChildren().add(scrollPane);
         return root;
+    }
+
+    private Label makeTagLabel(String tag, Pane container) {
+        Label lbl = new Label("#" + tag);
+        lbl.setStyle("-fx-background-color: #ddd; -fx-padding: 5 10; -fx-background-radius: 12;");
+        lbl.setOnMouseClicked(e -> container.getChildren().remove(lbl));
+        return lbl;
     }
 
     private HBox buildNavbar() {

@@ -131,6 +131,39 @@ public class Database {
         return -1;
     }
 
+    public static void updateBandProfileAndTags(int id, String name, String bio, String email, String phone, int krajId,
+            String[] tags) {
+        String sql = "SELECT update_band_profile_and_tags(?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.setString(2, name);
+            stmt.setString(3, bio);
+            stmt.setString(4, email);
+            stmt.setString(5, phone);
+            stmt.setInt(6, krajId);
+            Array array = conn.createArrayOf("text", tags);
+            stmt.setArray(7, array);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> getTagsForBand(int bandId) {
+        List<String> tags = new ArrayList<>();
+        String sql = "SELECT t.name FROM tags t JOIN bands_tags bt ON bt.tags_id = t.id WHERE bt.band_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bandId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tags.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tags;
+    }
+
     public static List<Band> getConfirmedMatches(int bandId) {
         List<Band> matches = new ArrayList<>();
         String sql = "SELECT * FROM get_confirmed_matches(?)";
