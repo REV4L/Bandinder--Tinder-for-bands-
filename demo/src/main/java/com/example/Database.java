@@ -96,6 +96,33 @@ public class Database {
         return null;
     }
 
+    public static int getCurrentBandId() {
+        return bandId;
+    }
+
+    public static int getOtherBandIdFromSuggestion(int suggestionId, int bandId) {
+        int otherBandId = -1;
+        String sql = "SELECT getBandIdFromSuggestions(?, ?)";
+
+        try (
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, suggestionId);
+            stmt.setInt(2, bandId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    otherBandId = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // You can log this or handle it differently
+        }
+
+        return otherBandId;
+    }
+
     public static List<Image> getBandImages(int bandId) {
         List<Image> images = new ArrayList<>();
         String query = "SELECT * FROM get_band_images(?)";
@@ -150,6 +177,9 @@ public class Database {
     }
 
     public static List<String> getTagsForBand(int bandId) {
+        System.out.println("----");
+        System.out.println(bandId);
+        System.out.println(Database.bandId);
         List<String> tags = new ArrayList<>();
         String sql = "SELECT t.name FROM tags t JOIN bands_tags bt ON bt.tags_id = t.id WHERE bt.band_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -161,6 +191,8 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        System.out.println(tags);
+        System.out.println("----");
         return tags;
     }
 

@@ -30,6 +30,7 @@ public class Card {
     private Label swipeIndicator;
     private ImageView imageView;
     private HBox progressBar;
+    private HBox tagRow;
     private List<Image> images;
     private int currentImageIndex = 0;
 
@@ -120,6 +121,15 @@ public class Card {
         name.setText(band.name);
         bio.setText(band.bio);
         genre.setText(band.email);
+
+        setTags(Database.bandId);
+    }
+
+    private void setTags(Integer bandId) {
+        tagRow.getChildren().setAll(
+                buildTagRow(
+                        Database.bandId, Database.getOtherBandIdFromSuggestion(
+                                Database.bandId, Database.currentSuggestionId)));
     }
 
     public StackPane createCard(Region bindTo) {
@@ -158,7 +168,14 @@ public class Card {
         bio.setStyle("-fx-font-size: 22; -fx-text-fill: white; -fx-font-family: 'Trebuchet MS';");
         genre.setStyle("-fx-font-size: 22; -fx-text-fill: white; -fx-font-family: 'Trebuchet MS';");
 
-        VBox vb = new VBox(5, name, bio, genre);
+        tagRow = new HBox();
+
+        VBox vb = new VBox(5, name, bio, genre,
+                tagRow);
+
+        System.out.println(Database.getTagsForBand(Database.getOtherBandIdFromSuggestion(
+                Database.bandId, Database.currentSuggestionId)));
+
         vb.setAlignment(Pos.BOTTOM_LEFT);
         vb.setPadding(new Insets(padding));
 
@@ -192,6 +209,26 @@ public class Card {
         });
 
         return card;
+    }
+
+    private HBox buildTagRow(int bandId, int otherBandId) {
+        HBox tagRow = new HBox();
+        tagRow.setSpacing(10);
+        tagRow.setPadding(new Insets(10, 0, 0, 0));
+
+        List<String> bandTags = Database.getTagsForBand(bandId);
+        List<String> otherBandTags = Database.getTagsForBand(otherBandId);
+
+        for (String tag : otherBandTags) {
+            Label tagLabel = new Label(tag);
+            tagLabel.getStyleClass().add(
+                    bandTags.contains(tag) ? "tag-matched" : "tag-default");
+            tagRow.getChildren().add(tagLabel);
+        }
+
+        System.out.println(bandTags);
+
+        return tagRow;
     }
 
     private void setImages(List<Image> imgs) {

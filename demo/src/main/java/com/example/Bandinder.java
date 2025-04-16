@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javafx.beans.binding.Bindings;
+
 public class Bandinder extends Application {
     private StackPane root;
     private StackPane stack;
