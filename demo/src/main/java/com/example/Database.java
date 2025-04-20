@@ -96,6 +96,33 @@ public class Database {
         return null;
     }
 
+    public static int getCurrentBandId() {
+        return bandId;
+    }
+
+    public static int getOtherBandIdFromSuggestion(int suggestionId, int bandId) {
+        int otherBandId = -1;
+        String sql = "SELECT getBandIdFromSuggestions(?, ?)";
+
+        try (
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, suggestionId);
+            stmt.setInt(2, bandId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    otherBandId = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // You can log this or handle it differently
+        }
+
+        return otherBandId;
+    }
+
     public static List<Image> getBandImages(int bandId) {
         List<Image> images = new ArrayList<>();
         String query = "SELECT * FROM get_band_images(?)";
@@ -129,6 +156,44 @@ public class Database {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public static void updateBandProfileAndTags(int id, String name, String bio, String email, String phone, int krajId,
+            String[] tags) {
+        String sql = "SELECT update_band_profile_and_tags(?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.setString(2, name);
+            stmt.setString(3, bio);
+            stmt.setString(4, email);
+            stmt.setString(5, phone);
+            stmt.setInt(6, krajId);
+            Array array = conn.createArrayOf("text", tags);
+            stmt.setArray(7, array);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> getTagsForBand(int bandId) {
+        System.out.println("----");
+        System.out.println(bandId);
+        System.out.println(Database.bandId);
+        List<String> tags = new ArrayList<>();
+        String sql = "SELECT t.name FROM tags t JOIN bands_tags bt ON bt.tags_id = t.id WHERE bt.band_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bandId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tags.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println(tags);
+        System.out.println("----");
+        return tags;
     }
 
     public static List<Band> getConfirmedMatches(int bandId) {

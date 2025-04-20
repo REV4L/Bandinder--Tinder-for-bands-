@@ -65,6 +65,22 @@
 
 }
 
+.tag-default {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 5 10;
+    -fx-background-radius: 10;
+    -fx-font-size: 12px;
+}
+
+.tag-matched {
+    -fx-background-color: #90caf9;
+    -fx-padding: 5 10;
+    -fx-background-radius: 10;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+
 /* .root {
     -fx-background-color: #3f3f3f;
     -fx-font-family: "Trebuchet MS";
