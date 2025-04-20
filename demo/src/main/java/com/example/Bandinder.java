@@ -111,7 +111,7 @@ public class Bandinder extends Application {
     }
 
     private void tick() {
-        matchPage.getChildren().setAll(buildMatchPage());
+        // matchPage.getChildren().setAll(buildMatchPage());
     }
 
     private StackPane buildAuthStack() {
@@ -224,11 +224,14 @@ public class Bandinder extends Application {
         return reg;
     }
 
+    private void rebuildMatchPage() {
+        matchPage.getChildren().setAll(buildMatchPage());
+    }
+
     private Pane buildMatchPage() {
-        VBox content = new VBox(10); // less spacing between title and scroll
+        VBox content = new VBox(10);
         content.setAlignment(Pos.TOP_CENTER);
-        content.setPadding(Insets.EMPTY); // remove all outside padding
-        // content.getStyleClass().add("page");
+        content.setPadding(Insets.EMPTY);
 
         Label title = new Label("🔥 Matches");
         title.getStyleClass().add("cname");
@@ -238,31 +241,43 @@ public class Bandinder extends Application {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        // scrollPane.setPadding(new Insets(10)); // no scroll padding
-        scrollPane.setPadding(Insets.EMPTY); // no scroll padding
+        scrollPane.setPadding(Insets.EMPTY);
         scrollPane.getStyleClass().addAll("scroll-pane", "transparent");
 
         VBox matchList = new VBox(15);
         matchList.setFillWidth(true);
-        matchList.setPadding(Insets.EMPTY); // no VBox padding
+        matchList.setPadding(Insets.EMPTY);
         matchList.setStyle("-fx-background-color: transparent;");
-        matchList.setAlignment(Pos.TOP_CENTER); // align items neatly
-
-        // for (int i = 0; i < 50; i++) {
-        // matchList.getChildren().add(buildMatchItem(
-        // "Band #" + (i + 1),
-        // "Rock • Guitar",
-        // "Contact: band" + (i + 1) + "@music.com"));
-        // }
-
-        List<Band> matches = Database.getConfirmedMatches(Database.bandId);
-        matchList.getChildren().clear();
-        for (Band b : matches) {
-            matchList.getChildren().add(buildMatchItem(b));
-        }
+        matchList.setAlignment(Pos.TOP_CENTER);
 
         scrollPane.setContent(matchList);
         content.getChildren().addAll(title, scrollPane);
+
+        // Run the match fetch in a background thread
+        new Thread(() -> {
+            List<Band> matches = Database.getConfirmedMatches(Database.bandId);
+
+            javafx.application.Platform.runLater(() -> {
+                matchList.getChildren().clear();
+                int i = 1;
+                for (Band b : matches) {
+                    HBox matchItem = buildMatchItem(b);
+
+                    matchItem.setTranslateX(-1000);
+
+                    TranslateTransition transition = new TranslateTransition(Duration.millis(300), matchItem);
+                    transition.setFromX(-1000);
+                    transition.setToX(0);
+                    transition.setDelay(Duration.millis(100 * i));
+
+                    transition.play();
+
+                    matchList.getChildren().add(matchItem);
+
+                    i++;
+                }
+            });
+        }).start();
 
         return content;
     }
@@ -520,7 +535,12 @@ public class Bandinder extends Application {
         Button btnProfile = buildNavbarButton("/profile.png");
 
         btnSwipe.setOnAction(e -> switchPage(swipePage));
-        btnMatch.setOnAction(e -> switchPage(matchPage));
+        btnMatch.setOnAction(e -> {
+            if (currentPage != matchPage) {
+                switchPage(matchPage);
+                rebuildMatchPage();
+            }
+        });
         btnProfile.setOnAction(e -> switchPage(profilePage));
 
         // Create spacers
