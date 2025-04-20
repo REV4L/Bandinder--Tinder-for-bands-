@@ -55,6 +55,9 @@ public class Bandinder extends Application {
     private Pane swipePage, matchPage, profilePage;
     private Pane currentPage;
 
+    private Stage stage;
+    private Thread tickThread;
+
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -63,6 +66,16 @@ public class Bandinder extends Application {
             e.printStackTrace();
         }
 
+        stage = primaryStage;
+
+        buildApp();
+    }
+
+    private void rebuildApp() {
+        buildApp();
+    }
+
+    private void buildApp() {
         root = new StackPane();
         scene = new Scene(root, 400, 750);
         root.getStyleClass().add("root");
@@ -92,11 +105,13 @@ public class Bandinder extends Application {
 
         loadCss();
 
-        primaryStage.setTitle("Bandinder");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setTitle("Bandinder");
+        stage.setScene(scene);
+        stage.show();
 
-        new Thread(() -> {
+        if (tickThread != null)
+            tickThread.interrupt();
+        tickThread = new Thread(() -> {
             try {
                 while (true) {
                     Thread.sleep(1000); // wait 100ms
@@ -107,7 +122,8 @@ public class Bandinder extends Application {
                 }
             } catch (Exception ex) {
             }
-        }).start();
+        });
+        tickThread.start();
     }
 
     private void tick() {
@@ -498,10 +514,15 @@ public class Bandinder extends Application {
                 }
             });
 
+            Button logoutBtn = new Button("Log Out");
+            logoutBtn.setOnAction(e -> {
+                Database.logOut();
+                rebuildApp();
+            });
             // Rectangle r = new Rectangle(0, 100);
 
             VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, tagInput, tagPane,
-                    saveBtn, new Rectangle(0, 100));
+                    new Rectangle(0, 100), saveBtn, new Rectangle(0, 20), logoutBtn, new Rectangle(0, 100));
             form.setAlignment(Pos.CENTER);
 
             content.getChildren().addAll(heading, flow, form);

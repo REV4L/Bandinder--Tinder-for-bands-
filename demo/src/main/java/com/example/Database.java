@@ -59,6 +59,11 @@ public class Database {
         return false;
     }
 
+    public static void logOut() {
+        bandId = -1;
+        band = null;
+    }
+
     public static boolean registerBand(String name, String email, String pass) {
         String query = "SELECT * FROM register_band(?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
