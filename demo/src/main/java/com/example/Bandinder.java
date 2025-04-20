@@ -498,8 +498,10 @@ public class Bandinder extends Application {
                 }
             });
 
+            // Rectangle r = new Rectangle(0, 100);
+
             VBox form = new VBox(10, nameField, bioField, emailField, phoneField, krajCombo, tagInput, tagPane,
-                    saveBtn);
+                    saveBtn, new Rectangle(0, 100));
             form.setAlignment(Pos.CENTER);
 
             content.getChildren().addAll(heading, flow, form);
