@@ -28,6 +28,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -79,6 +82,53 @@ public class Bandinder extends Application {
         root = new StackPane();
         scene = new Scene(root, 400, 750);
         root.getStyleClass().add("root");
+
+        // scene.setOnKeyPressed(e -> {
+        // if (e.getCode() == KeyCode.R) {
+        // System.out.println("The 'A' key was pressed");
+        // }
+        // });
+        scene.getAccelerators().put(new KeyCodeCombination(
+                KeyCode.R, KeyCombination.CONTROL_ANY), new Runnable() {
+                    @Override
+                    public void run() {
+                        // Database.logOut();
+                        // rebuildApp();
+                        reloadCss();
+                    }
+                });
+        // scene.getAccelerators().put(new KeyCodeCombination( // spammed temp css into
+        // appdata/local/temp
+        // KeyCode.R, KeyCombination.CONTROL_ANY, KeyCombination.SHIFT_ANY), new
+        // Runnable() {
+        // @Override
+        // public void run() {
+        // // Database.logOut();
+        // // rebuildApp();
+        // new Thread(() -> {
+        // try {
+        // while (true) {
+        // Thread.sleep(1000);
+        // reloadCss();
+        // }
+        // } catch (Exception e) {
+        // }
+        // }).start();
+        // ;
+        // scene.getStylesheets().clear();
+        // loadCss();
+        // }
+        // });
+        scene.getAccelerators().put(new KeyCodeCombination(
+                KeyCode.T, KeyCombination.CONTROL_ANY), new Runnable() {
+                    @Override
+                    public void run() {
+                        Database.logOut();
+                        rebuildApp();
+                        // scene.getStylesheets().clear();
+                        // loadCss();
+                    }
+                });
 
         stack = new StackPane();
         authStack = buildAuthStack();
@@ -469,10 +519,21 @@ public class Bandinder extends Application {
             ObservableList<String> currentTags = FXCollections
                     .observableArrayList(Database.getTagsForBand(Database.bandId));
             for (String tag : currentTags) {
-                Label tagLabel = new Label("#" + tag);
-                tagLabel.setStyle(
-                        "-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 5 10 5 10; -fx-background-radius: 15;");
-                tagLabel.setOnMouseClicked(e -> tagPane.getChildren().remove(tagLabel));
+                // Label tagLabel = new Label("#" + tag);
+                // tagLabel = buildTagLabel();
+                // tagLabel.setStyle(
+                // "-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 5 10 5 10;
+                // -fx-background-radius: 15;");
+                // tagLabel.setOnMouseClicked(e -> tagPane.getChildren().remove(tagLabel));
+                // tagPane.getChildren().add(tagLabel);
+                // tagPane.getChildren().add(buildTagLabel(tag, c -> {
+                // c.setOnMouseClicked(e -> tagPane.getChildren().remove(c));
+                // }));
+
+                Label tagLabel = buildTagLabel(tag, null);
+
+                tagLabel.setOnMouseClicked(ev -> tagPane.getChildren().remove(tagLabel));
+
                 tagPane.getChildren().add(tagLabel);
             }
 
@@ -481,11 +542,18 @@ public class Bandinder extends Application {
             tagInput.setOnAction(e -> {
                 String text = tagInput.getText().trim().toLowerCase();
                 if (!text.isEmpty()) {
-                    Label tagLabel = new Label("#" + text);
-                    tagLabel.setStyle(
-                            "-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 5 10 5 10; -fx-background-radius: 15;");
+                    // Label tagLabel = new Label("#" + text);
+                    Label tagLabel = buildTagLabel(text, null);
+
                     tagLabel.setOnMouseClicked(ev -> tagPane.getChildren().remove(tagLabel));
+
                     tagPane.getChildren().add(tagLabel);
+                    // tagLabel.setStyle(
+                    // "-fx-background-color: #333; -fx-text-fill: white; -fx-padding: 5 10 5 10;
+                    // -fx-background-radius: 15;");
+                    // tagLabel.setOnMouseClicked(ev -> tagPane.getChildren().remove(tagLabel));
+
+                    // tagPane.getChildren().add(tagLabel);
                     tagInput.clear();
                 }
             });
@@ -537,10 +605,11 @@ public class Bandinder extends Application {
         return root;
     }
 
-    private Label makeTagLabel(String tag, Pane container) {
+    private Label buildTagLabel(String tag, Consumer<Label> c) {
         Label lbl = new Label("#" + tag);
-        lbl.setStyle("-fx-background-color: #ddd; -fx-padding: 5 10; -fx-background-radius: 12;");
-        lbl.setOnMouseClicked(e -> container.getChildren().remove(lbl));
+        lbl.setStyle("-fx-padding: 5 10; -fx-background-radius: 12;");
+        lbl.getStyleClass().add("tagLabel");
+        // lbl.setOnMouseClicked(e -> container.getChildren().remove(lbl));
         return lbl;
     }
 
@@ -644,6 +713,11 @@ public class Bandinder extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void reloadCss() {
+        scene.getStylesheets().clear();
+        loadCss();
     }
 
     public static void main(String[] args) {

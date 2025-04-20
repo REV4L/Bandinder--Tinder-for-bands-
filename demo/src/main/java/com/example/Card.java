@@ -147,7 +147,7 @@ public class Card {
         // imageView.fitHeightProperty().bind(cardHeight);
 
         DoubleBinding maxCardWidthByWidth = bindTo.widthProperty().multiply(0.9);
-        DoubleBinding maxCardWidthByHeight = bindTo.heightProperty().subtract(150).multiply(3.0 / 4.0);
+        DoubleBinding maxCardWidthByHeight = bindTo.heightProperty().subtract(250).multiply(3.0 / 4.0);
 
         DoubleBinding cardWidth = Bindings.createDoubleBinding(
                 () -> Math.min(maxCardWidthByWidth.get(), maxCardWidthByHeight.get()), maxCardWidthByWidth,
