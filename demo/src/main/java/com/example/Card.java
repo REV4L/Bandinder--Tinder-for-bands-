@@ -141,10 +141,30 @@ public class Card {
         imageView.setCache(true);
 
         // Bind imageView size to card size
-        DoubleBinding cardWidth = bindTo.widthProperty().multiply(0.9);
+        // DoubleBinding cardWidth = bindTo.widthProperty().multiply(0.9);
+        // DoubleBinding cardHeight = cardWidth.multiply(4.0 / 3.0);
+        // imageView.fitWidthProperty().bind(cardWidth);
+        // imageView.fitHeightProperty().bind(cardHeight);
+
+        DoubleBinding maxCardWidthByWidth = bindTo.widthProperty().multiply(0.9);
+        DoubleBinding maxCardWidthByHeight = bindTo.heightProperty().subtract(150).multiply(3.0 / 4.0);
+        DoubleBinding cardWidth = Bindings.createDoubleBinding(
+                () -> Math.min(maxCardWidthByWidth.get(), maxCardWidthByHeight.get()), maxCardWidthByWidth,
+                maxCardWidthByHeight);
         DoubleBinding cardHeight = cardWidth.multiply(4.0 / 3.0);
-        imageView.fitWidthProperty().bind(cardWidth);
-        imageView.fitHeightProperty().bind(cardHeight);
+
+        card.maxWidthProperty().bind(cardWidth);
+        card.minWidthProperty().bind(cardWidth);
+        card.prefWidthProperty().bind(cardWidth);
+        card.maxHeightProperty().bind(cardHeight);
+        card.minHeightProperty().bind(cardHeight);
+        card.prefHeightProperty().bind(cardHeight);
+
+        // card.widthProperty().bind(cardWidth);
+        // card.heightProperty().bind(cardHeight);
+
+        card.maxWidthProperty().bind(cardWidth.subtract(padding * 2));
+        card.prefWidthProperty().bind(cardWidth.subtract(padding * 2));
 
         Rectangle r = new Rectangle();
         r.setArcWidth(20);
