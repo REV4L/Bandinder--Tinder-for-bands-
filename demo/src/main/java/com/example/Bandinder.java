@@ -327,7 +327,7 @@ public class Bandinder extends Application {
         // Add overlay to the root stack
         root.getChildren().add(overlay);
 
-        TranslateTransition transition = new TranslateTransition(Duration.millis(3000), popupContent);
+        TranslateTransition transition = new TranslateTransition(Duration.millis(30000), popupContent);
         transition.setFromY(-1000);
         transition.setToY(0);
 
