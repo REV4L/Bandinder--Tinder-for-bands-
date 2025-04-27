@@ -80,6 +80,20 @@
     -fx-font-weight: bold;
 }
 
+.tagLabel {
+    -fx-background-color: #535353;
+}
+
+.tagLabel:hover {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: black;
+}
+
+.tagLabel:pressed {
+    -fx-background-color: #cf4d4d;
+    -fx-text-fill: rgb(255, 255, 255);
+}
+
 
 /* .root {
     -fx-background-color: #3f3f3f;
