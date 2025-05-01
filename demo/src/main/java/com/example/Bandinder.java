@@ -385,6 +385,7 @@ public class Bandinder extends Application {
         popupContent.getStyleClass().add("page");
 
         Button closeBtn = (Button) popupContent.getChildren().get(2);
+
         closeBtn.setOnAction(e -> root.getChildren().remove(overlay));
 
         overlay.getChildren().add(popupContent);
@@ -393,8 +394,8 @@ public class Bandinder extends Application {
         // Add overlay to the root stack
         root.getChildren().add(overlay);
 
-        TranslateTransition transition = new TranslateTransition(Duration.millis(30000), popupContent);
-        transition.setFromY(-1000);
+        TranslateTransition transition = new TranslateTransition(Duration.millis(300), popupContent);
+        transition.setFromY(2000);
         transition.setToY(0);
 
         transition.setOnFinished(e -> {
