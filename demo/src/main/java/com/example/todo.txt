@@ -1,0 +1,12 @@
+to do --
+
+last login - add to plpgsql function 
+
+add triggers:
+  imgcount in bands
+  log image uploads and deletions
+  tag count (num)
+
+optional --
+  rematching bands after swiping through all bands
+  tag suggestions
