@@ -177,7 +177,7 @@ public class Card {
 
         StackPane imageHolder = new StackPane(imageView);
         imageHolder.setStyle("-fx-background-color: #181818; -fx-background-radius: 20;");
-        // imageHolder.setClip(r);
+        imageHolder.setClip(r);
 
         imageView.fitWidthProperty().bind(cardWidth);
         imageView.fitHeightProperty().bind(cardHeight.multiply(1));
@@ -388,6 +388,7 @@ public class Card {
         if (images == null || images.isEmpty()) {
 
             imageView.setImage(null);
+            imageView.setImage(new Image(getClass().getResourceAsStream("/missing.png")));
             return;
         }
         imageView.setImage(images.get(currentImageIndex));
