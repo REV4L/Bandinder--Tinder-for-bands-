@@ -47,7 +47,7 @@ public class Database {
                 int id = rs.getInt(1);
                 if (id >= 0) {
                     bandId = id;
-                    band = getBandInfo(bandId); // ✅ move this BEFORE callback
+                    band = getBandInfo(bandId);
                     callback.accept(true);
                     return true;
                 }
@@ -81,9 +81,14 @@ public class Database {
     }
 
     public static void resetSwipes() {
-        String query = "SELECT * FROM resetSwipes()";
+        System.out.println("reset");
+        System.out.println(bandId);
+        String query = "SELECT * FROM resetSwipes(?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, Database.bandId);
+            // System.out.println(Database.bandId);
             stmt.executeQuery();
+            // conn.commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -116,14 +121,14 @@ public class Database {
 
     public static int getOtherBandIdFromSuggestion(int suggestionId, int bandId) {
         int otherBandId = -1;
-        String sql = "SELECT id FROM bands WHERE email = 'meraki'";
-        // String sql = "SELECT getBandIdFromSuggestions(?, ?)";
+        // String sql = "SELECT id FROM bands WHERE email = 'meraki'";
+        String sql = "SELECT getBandIdFromSuggestions(?, ?)";
 
         try (
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // stmt.setInt(1, suggestionId);
-            // stmt.setInt(2, bandId);
+            stmt.setInt(1, suggestionId);
+            stmt.setInt(2, bandId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -170,6 +175,8 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        currentSuggestionId = -1;
         return -1;
     }
 
@@ -192,9 +199,9 @@ public class Database {
     }
 
     public static List<String> getTagsForBand(int bandId) {
-        System.out.println("----");
-        System.out.println(bandId);
-        System.out.println(Database.bandId);
+        // System.out.println("----");
+        // System.out.println(bandId);
+        // System.out.println(Database.bandId);
         List<String> tags = new ArrayList<>();
         String sql = "SELECT t.name FROM tags t JOIN bands_tags bt ON bt.tags_id = t.id WHERE bt.band_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -206,8 +213,8 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println(tags);
-        System.out.println("----");
+        // System.out.println(tags);
+        // System.out.println("----");
         return tags;
     }
 
@@ -228,7 +235,7 @@ public class Database {
             e.printStackTrace();
         }
 
-        System.out.println(matches);
+        // System.out.println(matches);
         return matches;
     }
 
@@ -267,6 +274,17 @@ public class Database {
 
     public static void acceptSuggestion(int suggestionId) {
         String sql = "SELECT accept_suggestion(?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, suggestionId);
+            stmt.setInt(2, bandId);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void rejectSuggestion(int suggestionId) {
+        String sql = "SELECT reject_suggestion(?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, suggestionId);
             stmt.setInt(2, bandId);

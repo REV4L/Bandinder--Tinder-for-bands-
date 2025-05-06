@@ -130,6 +130,17 @@ public class Bandinder extends Application {
                     }
                 });
 
+        scene.getAccelerators().put(new KeyCodeCombination(
+                KeyCode.D, KeyCombination.CONTROL_ANY), new Runnable() {
+                    @Override
+                    public void run() {
+                        Database.resetSwipes();
+                        rebuildApp();
+                        // scene.getStylesheets().clear();
+                        // loadCss();
+                    }
+                });
+
         stack = new StackPane();
         authStack = buildAuthStack();
         swipePage = buildSwipePage();

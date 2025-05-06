@@ -79,7 +79,7 @@ public class Card {
             card.setTranslateY(1000);
 
             int nextId = Database.getBestBandMatch(Database.bandId, 1); // , c -> {
-
+            System.err.println(nextId);
             // new Thread(() -> {
             // try {
             // Thread.sleep(1000);
@@ -101,7 +101,7 @@ public class Card {
                 });
                 // return;
             }
-            System.out.println(nextId);
+            // System.out.println(nextId);
             if (nextId >= 0) {
                 Band band = Database.getBandInfo(nextId);
                 List<Image> imgs = Database.getBandImages(nextId);
@@ -177,7 +177,10 @@ public class Card {
 
         StackPane imageHolder = new StackPane(imageView);
         imageHolder.setStyle("-fx-background-color: #181818; -fx-background-radius: 20;");
-        imageHolder.setClip(r);
+        // imageHolder.setClip(r);
+
+        imageView.fitWidthProperty().bind(cardWidth);
+        imageView.fitHeightProperty().bind(cardHeight.multiply(1));
 
         name = new Label("Name");
         bio = new Label("Instrument");
@@ -203,8 +206,8 @@ public class Card {
         VBox vb = new VBox(5, name, bio, genre,
                 tagScroll);
 
-        System.out.println(Database.getTagsForBand(Database.getOtherBandIdFromSuggestion(
-                Database.bandId, Database.currentSuggestionId)));
+        // System.out.println(Database.getTagsForBand(Database.getOtherBandIdFromSuggestion(
+        // Database.bandId, Database.currentSuggestionId)));
 
         vb.setAlignment(Pos.BOTTOM_LEFT);
         vb.setPadding(new Insets(padding));
@@ -324,6 +327,8 @@ public class Card {
         flow.setVgap(10);
         flow.setPadding(new Insets(10));
         flow.setPrefWrapLength(300); // adjust if you want wrapping to trigger earlier
+        flow.setMinWidth(0);
+        flow.setMaxWidth(Integer.MAX_VALUE);
 
         List<String> userTags = Database.getTagsForBand(bandId);
         List<String> otherTags = Database.getTagsForBand(otherBandId);
@@ -380,8 +385,11 @@ public class Card {
     }
 
     private void updateImage() {
-        if (images == null || images.isEmpty())
+        if (images == null || images.isEmpty()) {
+
+            imageView.setImage(null);
             return;
+        }
         imageView.setImage(images.get(currentImageIndex));
         progressBar.getChildren().clear();
         for (int i = 0; i < images.size(); i++) {
@@ -519,6 +527,8 @@ public class Card {
     private void rejected() {
         System.out.println("rejected");
 
+        if (Database.currentSuggestionId >= 0)
+            Database.rejectSuggestion(Database.currentSuggestionId);
     }
 
     private void animateCard(Node card, double targetX) {
