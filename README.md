@@ -128,7 +128,7 @@ Logs any change in `accepted1` or `accepted2` indicating a swipe.
 Updates the `tags.num` counter when tags are added/removed.
 
 ### `trg_image_count_update`
-Maintains a denormalized count of images per band (`bands.imgcount`).
+Maintains a count of images per band (`bands.imgcount`).
 
 ---
 
