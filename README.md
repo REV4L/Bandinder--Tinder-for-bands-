@@ -1,8 +1,12 @@
+![logo@2x](https://github.com/user-attachments/assets/d802f0ad-8353-4a90-9743-24d1e749c9a7)
+
+
 # Bandinder – JavaFX Band Matching App
 
 Bandinder is a **Java desktop application** built with **JavaFX** that enables music bands to create profiles, upload images, tag themselves with genres/styles, and swipe to find and match with other bands. It's a Tinder-like experience tailored to musicians looking for collaboration.
 
 The project features a clean, animated interface, swipe gestures, profile editing, and real-time match tracking. The backend relies on a **PostgreSQL** database hosted on **Aiven** for cloud-native performance and scalability.
+
 
 ---
 
