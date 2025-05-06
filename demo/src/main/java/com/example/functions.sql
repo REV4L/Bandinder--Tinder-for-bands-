@@ -303,6 +303,30 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- get band id from suggestions
+CREATE OR REPLACE FUNCTION getBandIdFromSuggestions(suggestion_id INT, bandid INT)
+RETURNS INTEGER AS $$
+DECLARE
+    b INT;
+BEGIN
+    SELECT INTO b
+        CASE
+            WHEN s.band1_id = bandid THEN s.band2_id
+            ELSE s.band1_id
+        END AS band_id
+    FROM suggestions s
+    WHERE (s.band1_id = bandid OR s.band2_id = bandid) AND s.id = suggestion_id;
+
+    RETURN b;
+    --RETURN QUERY
+    --SELECT band1_id FROM suggestions WHERE band1_id = p_band_id OR band2_id = p_band_id;
+--
+    --RETURN QUERY
+    --(SELECT band1_id FROM suggestions WHERE accepted1 = 1 AND accepted2 = 1 AND band2_id = p_band_id) UNION (SELECT band2_id FROM suggestions WHERE accepted1 = 1 AND accepted2 = 1 AND band1_id = p_band_id);
+
+END;
+$$ LANGUAGE plpgsql;
+
 
 --CREATE OR REPLACE FUNCTION get_best_band_match(p_band_id INT, min_shared_tags INT)
 --RETURNS TABLE (
@@ -566,9 +590,49 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION update_band_profile_and_tags(
+    p_band_id INT,
+    p_name TEXT,
+    p_bio TEXT,
+    p_email TEXT,
+    p_phone TEXT,
+    p_kraj_id INT,
+    p_tags TEXT[]
+)
+RETURNS VOID AS $$
+DECLARE
+    tag TEXT;
+    normalized TEXT;
+BEGIN
+    -- Update main band profile info
+    UPDATE bands
+    SET
+        name = p_name,
+        bio = p_bio,
+        email = p_email,
+        phone = p_phone,
+        kraj_id = p_kraj_id
+    WHERE id = p_band_id;
 
+    -- Delete old tag associations
+    DELETE FROM bands_tags WHERE band_id = p_band_id;
 
+    -- Reinsert tags
+    IF p_tags IS NOT NULL THEN
+        FOREACH tag IN ARRAY p_tags LOOP
+            normalized := LOWER(regexp_replace(tag, '[^a-z0-9-]', '', 'g'));
 
+            -- Insert tag into tags table if it doesn't exist
+            INSERT INTO tags(name)
+            SELECT normalized
+            WHERE NOT EXISTS (
+                SELECT 1 FROM tags WHERE name = normalized
+            );
 
-
-
+            -- Associate band with tag
+            INSERT INTO bands_tags(band_id, tags_id)
+            SELECT p_band_id, id FROM tags WHERE name = normalized;
+        END LOOP;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
