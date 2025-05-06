@@ -377,7 +377,23 @@ public class Bandinder extends Application {
         item.getStyleClass().add("group");
 
         item.getChildren().addAll(infoBox);
-        item.setOnMouseClicked(e -> showContactPopup(band));
+        item.setOnMouseClicked(e -> {
+            showContactPopup(band);
+            new Thread(() -> {
+                try {
+                    javafx.application.Platform.runLater(() -> {
+                        item.setStyle("-fx-background-color:rgb(255, 255, 255); -fx-text-fill: black;");
+                    });
+
+                    Thread.sleep(100);
+
+                    javafx.application.Platform.runLater(() -> {
+                        item.setStyle("");
+                    });
+                } catch (Exception ex) {
+                }
+            }).start();
+        });
 
         return item;
     }
@@ -592,6 +608,21 @@ public class Bandinder extends Application {
                             krajId, // selectedKraj.id,
                             tags.toArray(new String[0]));
                 }
+
+                new Thread(() -> {
+                    try {
+                        javafx.application.Platform.runLater(() -> {
+                            saveBtn.setStyle("-fx-background-color: #34b839;");
+                        });
+
+                        Thread.sleep(500);
+
+                        javafx.application.Platform.runLater(() -> {
+                            saveBtn.setStyle("");
+                        });
+                    } catch (Exception ex) {
+                    }
+                }).start();
             });
 
             Button logoutBtn = new Button("Log Out");
