@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -91,7 +92,7 @@ public class Card {
             // });
             if (nextId < 0) {
 
-                Band band = new Band(-1, "You swiped all the bands", "Wait for their response", "", "",
+                Band band = new Band(-1, "You swiped all the bands", "Do you want to reset swipes?", "", "",
                         new Timestamp(nextId), 0);
 
                 javafx.application.Platform.runLater(() -> {
@@ -192,8 +193,15 @@ public class Card {
 
         tagRow = new HBox();
 
+        ScrollPane tagScroll = new ScrollPane(tagRow);
+        tagScroll.setFitToWidth(true);
+        // tagScroll.setPrefHeight(100);
+        tagScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        tagScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // or AS_NEEDED
+        tagScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
         VBox vb = new VBox(5, name, bio, genre,
-                tagRow);
+                tagScroll);
 
         System.out.println(Database.getTagsForBand(Database.getOtherBandIdFromSuggestion(
                 Database.bandId, Database.currentSuggestionId)));
@@ -218,8 +226,15 @@ public class Card {
         card.minHeightProperty().bind(cardHeight);
         card.prefHeightProperty().bind(cardHeight);
 
-        vb.maxWidthProperty().bind(cardWidth.subtract(padding * 2));
-        vb.prefWidthProperty().bind(cardWidth.subtract(padding * 2));
+        vb.maxHeightProperty().bind(cardHeight);
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(vb.widthProperty());
+        clip.heightProperty().bind(vb.heightProperty());
+        vb.setClip(clip);
+
+        // vb.maxWidthProperty().bind(cardWidth.subtract(padding * 2));
+        // vb.prefWidthProperty().bind(cardWidth.subtract(padding * 2));
 
         card.setOnMouseClicked(e -> {
             if (isHeld() || images == null || images.size() <= 1)
@@ -233,30 +248,130 @@ public class Card {
         return card;
     }
 
-    private HBox buildTagRow(int bandId, int otherBandId) {
-        HBox tagRow = new HBox();
-        tagRow.setSpacing(10);
-        tagRow.setPadding(new Insets(10, 0, 0, 0));
+    // private HBox buildTagRow(int bandId, int otherBandId) {
+    // HBox tagRow = new HBox();
+    // tagRow.setSpacing(10);
+    // tagRow.setPadding(new Insets(10, 0, 0, 0));
 
-        List<String> bandTags = Database.getTagsForBand(bandId);
-        List<String> otherBandTags = Database.getTagsForBand(otherBandId);
+    // List<String> bandTags = Database.getTagsForBand(bandId);
+    // List<String> otherBandTags = Database.getTagsForBand(otherBandId);
 
-        for (String tag : otherBandTags) {
-            Label tagLabel = new Label(tag);
-            tagLabel.getStyleClass().add(
-                    bandTags.contains(tag) ? "tag-matched" : "tag-default");
-            tagRow.getChildren().add(tagLabel);
+    // for (String tag : otherBandTags) {
+    // Label tagLabel = new Label(tag);
+    // tagLabel.getStyleClass().add(
+    // bandTags.contains(tag) ? "tag-matched" : "tag-default");
+    // tagRow.getChildren().add(tagLabel);
+    // }
+
+    // System.out.println("xxxxxxxxxxxxxxxxxx");
+    // System.out.println(bandId);
+    // System.out.println(bandTags);
+    // System.out.println(otherBandId); // je 0
+    // System.out.println(otherBandTags);
+    // System.out.println("xxxxxxxxxxxxxxxxxx");
+
+    // return tagRow;
+    // }
+
+    // private GridPane buildTagRow(int bandId, int otherBandId) {
+    // GridPane grid = new GridPane();
+    // grid.setHgap(10);
+    // grid.setVgap(10);
+    // grid.setPadding(new Insets(10));
+
+    // List<String> userTags = Database.getTagsForBand(bandId);
+    // List<String> otherTags = Database.getTagsForBand(otherBandId);
+
+    // int col = 0;
+    // int row = 0;
+
+    // for (int i = 0; i < otherTags.size(); i++) {
+    // String tag = otherTags.get(i);
+    // Label tagLabel = new Label("#" + tag);
+    // tagLabel.getStyleClass().add(userTags.contains(tag) ? "tag-matched" :
+    // "tag-default");
+
+    // tagLabel.setMaxWidth(Double.MAX_VALUE);
+    // tagLabel.setAlignment(Pos.CENTER);
+    // tagLabel.setWrapText(true);
+    // tagLabel.setStyle(tagLabel.getStyle() + "; -fx-font-size: 12px;");
+
+    // GridPane.setHgrow(tagLabel, Priority.ALWAYS);
+    // GridPane.setVgrow(tagLabel, Priority.ALWAYS);
+    // grid.add(tagLabel, col, row);
+
+    // col++;
+    // if (col == 3) {
+    // col = 0;
+    // row++;
+    // }
+    // }
+
+    // // Force each column to take 1/3 width
+    // for (int i = 0; i < 3; i++) {
+    // ColumnConstraints cc = new ColumnConstraints();
+    // cc.setPercentWidth(100.0 / 3.0);
+    // cc.setHgrow(Priority.ALWAYS);
+    // grid.getColumnConstraints().add(cc);
+    // }
+
+    // return grid;
+    // }
+
+    private FlowPane buildTagRow(int bandId, int otherBandId) {
+        FlowPane flow = new FlowPane();
+        flow.setHgap(10);
+        flow.setVgap(10);
+        flow.setPadding(new Insets(10));
+        flow.setPrefWrapLength(300); // adjust if you want wrapping to trigger earlier
+
+        List<String> userTags = Database.getTagsForBand(bandId);
+        List<String> otherTags = Database.getTagsForBand(otherBandId);
+
+        for (String tag : otherTags) {
+            Label tagLabel = new Label("#" + tag);
+            tagLabel.getStyleClass().clear();
+            tagLabel.getStyleClass().add(userTags.contains(tag) ? "tag-matched" : "tag-default");
+
+            tagLabel.setWrapText(true);
+            tagLabel.setMaxWidth(Double.MAX_VALUE); // let it shrink if needed
+            tagLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
+            tagLabel.setMinWidth(0); // IMPORTANT: no min width to prevent clipping
+            tagLabel.setAlignment(Pos.CENTER_LEFT);
+
+            flow.getChildren().add(tagLabel);
         }
 
-        System.out.println("xxxxxxxxxxxxxxxxxx");
-        System.out.println(bandId);
-        System.out.println(bandTags);
-        System.out.println(otherBandId); // je 0
-        System.out.println(otherBandTags);
-        System.out.println("xxxxxxxxxxxxxxxxxx");
-
-        return tagRow;
+        return flow;
     }
+
+    // private FlowPane buildTagRow(int bandId, int otherBandId) {
+    // FlowPane tagRow = new FlowPane();
+    // tagRow.setHgap(8); // horizontal gap
+    // tagRow.setVgap(8); // vertical gap
+    // tagRow.setPadding(new Insets(10, 0, 0, 0));
+    // tagRow.setPrefWrapLength(300); // Optional: wrap at 300px, or let container
+    // handle it
+
+    // List<String> bandTags = Database.getTagsForBand(bandId);
+    // List<String> otherBandTags = Database.getTagsForBand(otherBandId);
+
+    // for (String tag : otherBandTags) {
+    // Label tagLabel = new Label("#" + tag);
+    // tagLabel.getStyleClass().add(bandTags.contains(tag) ? "tag-matched" :
+    // "tag-default");
+
+    // // Ensure tag size adjusts
+    // tagLabel.setMaxWidth(Double.MAX_VALUE);
+    // tagLabel.setWrapText(true);
+    // tagLabel.setStyle(tagLabel.getStyle() + "; -fx-font-size: 12px;"); // scale
+    // down text if needed
+
+    // tagRow.getChildren().add(tagLabel);
+    // }
+
+    // return tagRow;
+    // }
 
     private void setImages(List<Image> imgs) {
         this.images = imgs;
@@ -397,6 +512,8 @@ public class Card {
 
         if (Database.currentSuggestionId >= 0)
             Database.acceptSuggestion(Database.currentSuggestionId);
+        else
+            Database.resetSwipes();
     }
 
     private void rejected() {

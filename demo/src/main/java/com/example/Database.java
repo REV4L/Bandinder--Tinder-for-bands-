@@ -80,6 +80,15 @@ public class Database {
         return false;
     }
 
+    public static void resetSwipes() {
+        String query = "SELECT * FROM resetSwipes()";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.executeQuery();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static Band getBandInfo(int bandId) {
         String query = "SELECT * FROM get_band_info(?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -107,13 +116,14 @@ public class Database {
 
     public static int getOtherBandIdFromSuggestion(int suggestionId, int bandId) {
         int otherBandId = -1;
-        String sql = "SELECT getBandIdFromSuggestions(?, ?)";
+        String sql = "SELECT id FROM bands WHERE email = 'meraki'";
+        // String sql = "SELECT getBandIdFromSuggestions(?, ?)";
 
         try (
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, suggestionId);
-            stmt.setInt(2, bandId);
+            // stmt.setInt(1, suggestionId);
+            // stmt.setInt(2, bandId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

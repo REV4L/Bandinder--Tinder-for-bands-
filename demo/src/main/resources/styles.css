@@ -66,14 +66,15 @@
 }
 
 .tag-default {
-    -fx-background-color: #e0e0e0;
+    -fx-background-color: #4f4f4f;
     -fx-padding: 5 10;
     -fx-background-radius: 10;
     -fx-font-size: 12px;
 }
 
 .tag-matched {
-    -fx-background-color: #90caf9;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: black;
     -fx-padding: 5 10;
     -fx-background-radius: 10;
     -fx-font-size: 12px;
